@@ -1,0 +1,5 @@
+{
+  "name": "Vinyl Vibe Player",
+  "description": "A high-fidelity local audio player with vinyl visualization, dynamic lighting effects, and dual-language lyrics support.",
+  "requestFramePermissions": []
+}
