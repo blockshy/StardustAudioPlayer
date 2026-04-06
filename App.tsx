@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, Language, ParticleDirection, LyricEffect, RecordingFormat, SingerInfoLine } from './types';
+import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, Language, ParticleDirection, LyricEffect, SingerInfoLine } from './types';
 import { parseSRT, parseSingerSRT } from './utils/srtParser';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
-import { useRecorder } from './hooks/useRecorder';
 import AlbumArt from './components/AlbumArt';
 import LyricsDisplay from './components/LyricsDisplay';
 import ConfigPanel from './components/ConfigPanel';
@@ -14,7 +13,6 @@ import BackgroundLayer from './components/BackgroundLayer';
 import TopHeader from './components/TopHeader';
 import TrackInfo from './components/TrackInfo';
 import PlayerControlBar from './components/PlayerControlBar';
-import RecordingIndicator from './components/RecordingIndicator';
 
 const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -28,8 +26,8 @@ const App: React.FC = () => {
                 ...DEFAULT_STATE,
                 ...parsed,
                 audioFile: null, audioUrl: null, coverFile: null, coverUrl: null,
-                backgroundImageFile: null, backgroundImageUrl: null, customParticleFile: null, customParticleUrl: null,
-                srtFile: null, singerSrtFile: null, lyrics: [], singerLyrics: [], isRecording: false, isRecordArmed: false
+                backgroundImageFile: null, backgroundImageUrl: null,
+                srtFile: null, singerSrtFile: null, lyrics: [], singerLyrics: []
             };
         }
     } catch (e) {}
@@ -43,8 +41,7 @@ const App: React.FC = () => {
       } catch (e) { return []; }
   });
 
-  const { isPlaying, currentTime, duration, volume, analyser, audioDestination, togglePlay, seek, setVolume } = useAudioPlayer(appState.audioUrl);
-  const { isRecording, prepareStream, startRecording, stopRecording, cleanupStream } = useRecorder();
+  const { isPlaying, currentTime, duration, volume, analyser, togglePlay, seek, setVolume } = useAudioPlayer(appState.audioUrl);
 
   // --- Theme Color Lookahead Logic ---
   const lookaheadTime = 0.3; 
@@ -132,44 +129,10 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [togglePlay]);
 
-  useEffect(() => {
-    let frameCount = 0;
-    let startTime = performance.now();
-    const detectFPS = () => {
-      frameCount++;
-      if (frameCount < 30) requestAnimationFrame(detectFPS);
-      else {
-        const endTime = performance.now();
-        const duration = endTime - startTime;
-        const measuredFps = Math.round((frameCount / duration) * 1000);
-        const saved = localStorage.getItem('vinyl_vibe_settings_v3');
-        if (!saved) setAppState(prev => ({ ...prev, recordFps: Math.min(Math.max(measuredFps, 30), 300) }));
-      }
-    };
-    requestAnimationFrame(detectFPS);
-  }, []);
-
-  useEffect(() => {
-    if (appState.isRecordArmed && isPlaying && !isRecording) {
-      startRecording(audioDestination, appState.recordFormat, appState.recordBitrate).then(success => {
-        if (!success) {
-          setAppState(prev => ({ ...prev, isRecordArmed: false }));
-          cleanupStream();
-        }
-      });
-    }
-  }, [isPlaying, appState.isRecordArmed, isRecording, audioDestination, appState.recordFormat, appState.recordBitrate, startRecording, cleanupStream]);
-
-  useEffect(() => {
-    if (isRecording && (!isPlaying || (duration > 0 && currentTime >= duration - 0.1))) {
-       stopRecording();
-       setAppState(prev => ({ ...prev, isRecordArmed: false }));
-    }
-  }, [isPlaying, isRecording, currentTime, duration, stopRecording]);
-
   const handleFileChange = async (type: any, file: File) => {
     const url = (type === 'srt' || type === 'singerSrt') ? null : URL.createObjectURL(file);
     if (type === 'audio') {
+      if (appState.audioUrl) URL.revokeObjectURL(appState.audioUrl);
       setAppState(prev => ({ ...prev, audioFile: file, audioUrl: url, metadata: { ...prev.metadata, title: file.name.replace(/\.[^/.]+$/, "") } }));
       if ((window as any).jsmediatags) {
           (window as any).jsmediatags.read(file, {
@@ -178,6 +141,7 @@ const App: React.FC = () => {
                   setAppState(prev => {
                       let newCoverUrl = prev.coverUrl;
                       if (picture) {
+                          if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
                           const { data, format } = picture;
                           const blob = new Blob([new Uint8Array(data)], { type: format });
                           newCoverUrl = URL.createObjectURL(blob);
@@ -189,10 +153,13 @@ const App: React.FC = () => {
           });
       }
     } else if (type === 'cover') {
+      if (appState.coverUrl) URL.revokeObjectURL(appState.coverUrl);
       setAppState(prev => ({ ...prev, coverFile: file, coverUrl: url }));
       if (url) extractDominantColor(url).then(color => setAppState(prev => ({ ...prev, themeColor: color })));
-    } else if (type === 'background') setAppState(prev => ({ ...prev, backgroundImageFile: file, backgroundImageUrl: url }));
-    else if (type === 'customParticle') setAppState(prev => ({ ...prev, customParticleFile: file, customParticleUrl: url }));
+    } else if (type === 'background') {
+      if (appState.backgroundImageUrl) URL.revokeObjectURL(appState.backgroundImageUrl);
+      setAppState(prev => ({ ...prev, backgroundImageFile: file, backgroundImageUrl: url }));
+    }
     else if (type === 'srt') {
       const reader = new FileReader();
       reader.onload = (e) => setAppState(prev => ({ ...prev, srtFile: file, lyrics: parseSRT(e.target?.result as string) }));
@@ -204,17 +171,48 @@ const App: React.FC = () => {
     }
   };
 
-  const handleRecordArmToggle = async () => {
-    if (appState.isRecordArmed) {
-      cleanupStream();
-      setAppState(prev => ({ ...prev, isRecordArmed: false }));
-    } else {
-      const success = await prepareStream(appState.recordFps, appState.recordCaptureCursor);
-      if (success) setAppState(prev => ({ ...prev, isRecordArmed: true }));
-    }
-  };
+  const handleFileRemove = useCallback((type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => {
+    setAppState(prev => {
+      const nextState = { ...prev };
 
-  const handleRecordConfigChange = (key: string, value: any) => setAppState(prev => ({ ...prev, [key]: value }));
+      switch (type) {
+        case 'audio':
+          if (prev.audioUrl) URL.revokeObjectURL(prev.audioUrl);
+          nextState.audioFile = null;
+          nextState.audioUrl = null;
+          break;
+        case 'cover':
+          if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
+          nextState.coverFile = null;
+          nextState.coverUrl = null;
+          break;
+        case 'background':
+          if (prev.backgroundImageUrl) URL.revokeObjectURL(prev.backgroundImageUrl);
+          nextState.backgroundImageFile = null;
+          nextState.backgroundImageUrl = null;
+          nextState.backgroundImageScale = DEFAULT_STATE.backgroundImageScale;
+          nextState.backgroundImageX = DEFAULT_STATE.backgroundImageX;
+          nextState.backgroundImageY = DEFAULT_STATE.backgroundImageY;
+          break;
+        case 'srt':
+          nextState.srtFile = null;
+          nextState.lyrics = [];
+          break;
+        case 'singerSrt':
+          nextState.singerSrtFile = null;
+          nextState.singerLyrics = [];
+          break;
+      }
+
+      return nextState;
+    });
+  }, []);
+
+  useEffect(() => () => {
+    if (appState.audioUrl) URL.revokeObjectURL(appState.audioUrl);
+    if (appState.coverUrl) URL.revokeObjectURL(appState.coverUrl);
+    if (appState.backgroundImageUrl) URL.revokeObjectURL(appState.backgroundImageUrl);
+  }, [appState.audioUrl, appState.coverUrl, appState.backgroundImageUrl]);
 
   const handleSavePreset = useCallback((name: string, idToOverwrite?: string) => {
       const persistableConfig: Partial<AppState> = {};
@@ -262,9 +260,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-        className={`relative w-full h-[100dvh] overflow-hidden font-sans transition-colors duration-1000 ease-in-out ${
-            isRecording && !appState.recordCaptureCursor ? 'hide-cursor-permanently' : ''
-        }`}
+        className="relative w-full h-[100dvh] overflow-hidden font-sans transition-colors duration-1000 ease-in-out"
         style={{ backgroundColor: isLightMode ? '#f2f2f2' : '#050505' }}
     >
       <BackgroundLayer appState={{...appState, colorfulColors: derivedColors}} />
@@ -274,11 +270,9 @@ const App: React.FC = () => {
         enabled={appState.enableParticles} beatSync={appState.enableParticleBeatSync} sensitivity={appState.particleSensitivity}
         particleSize={appState.particleSize} particleBaseSpeed={appState.particleBaseSpeed} particleType={appState.particleType}
         particleDirection={appState.particleDirection} particlePalettes={appState.particlePalettes} useThemeColor={appState.useThemeColorForParticles}
-        themeMode={appState.themeMode} customParticleUrl={appState.customParticleUrl}
+        themeMode={appState.themeMode}
         singerOverrideColors={currentSingerColors}
       />
-
-      <RecordingIndicator isRecording={isRecording} isArmed={appState.isRecordArmed} />
 
       <div className={`relative z-10 flex flex-col h-full w-full max-w-[1920px] mx-auto`}>
         <TopHeader appState={appState} toggleTheme={() => setAppState(prev => ({...prev, themeMode: prev.themeMode === 'dark' ? 'light' : prev.themeMode === 'light' ? 'colorful' : 'dark'}))} setIsConfigOpen={setIsConfigOpen} />
@@ -340,7 +334,7 @@ const App: React.FC = () => {
 
         <ConfigPanel 
           isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} appState={appState}
-          onFileChange={handleFileChange} onFileRemove={(type) => setAppState(prev => ({...prev, [type+'File']: null, [type+(type.endsWith('File')?'':'Url')]: null, [type === 'singerSrt' ? 'singerLyrics' : (type === 'srt' ? 'lyrics' : '')]: []}))}
+          onFileChange={handleFileChange} onFileRemove={handleFileRemove}
           onMetadataChange={(k, v) => setAppState(prev => ({...prev, metadata: {...prev.metadata, [k]: v}}))}
           onThemeChange={(c) => setAppState(prev => ({...prev, themeColor: c}))}
           onColorfulColorsChange={(c) => setAppState(prev => ({...prev, colorfulColors: c}))}
@@ -380,9 +374,6 @@ const App: React.FC = () => {
           onSavePreset={handleSavePreset}
           onDeletePreset={(id) => setCustomPresets(prev => prev.filter(p => p.id !== id))}
           onLanguageChange={(l) => setAppState(prev => ({...prev, language: l}))}
-          
-          onRecordArmToggle={handleRecordArmToggle}
-          onRecordConfigChange={handleRecordConfigChange}
 
           // Singer Info Event Handlers
           onSingerInfoConfigChange={(key, value) => setAppState(prev => ({ ...prev, [key]: value }))}

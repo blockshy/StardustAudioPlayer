@@ -18,7 +18,7 @@ const ConfigTypography: React.FC<ConfigTypographyProps> = ({ appState, onTrackTy
         field: 'trackTitle' | 'trackArtist' | 'trackAlbum' | 'trackVisualArtist' | 'trackCoverSinger',
         label: string,
         minSize: number = 8,
-        maxSize: number = 60
+        maxSize: number = 100
     ) => {
         const sizeKey = `${field}Size` as keyof AppState;
         const colorKey = `${field}Color` as keyof AppState;

@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AudioContextState } from '../types';
 
@@ -8,8 +7,6 @@ export const useAudioPlayer = (audioUrl: string | null) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  // Fix: MediaStreamDestinationNode is not a standard type name; it should be MediaStreamAudioDestinationNode
-  const destinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
 
   const [state, setState] = useState<AudioContextState>({
     isPlaying: false,
@@ -17,7 +14,6 @@ export const useAudioPlayer = (audioUrl: string | null) => {
     duration: 0,
     volume: 1,
     analyser: null,
-    audioDestination: null,
   });
 
   useEffect(() => {
@@ -52,19 +48,15 @@ export const useAudioPlayer = (audioUrl: string | null) => {
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 256;
 
-    const dest = ctx.createMediaStreamDestination();
-
     const source = ctx.createMediaElementSource(audioRef.current);
     source.connect(analyser);
-    source.connect(dest); // Also connect to stream destination for recording
     analyser.connect(ctx.destination);
 
     audioContextRef.current = ctx;
     analyserRef.current = analyser;
     sourceRef.current = source;
-    destinationRef.current = dest;
 
-    setState(prev => ({ ...prev, analyser, audioDestination: dest }));
+    setState(prev => ({ ...prev, analyser }));
 
     return () => {
       ctx.close();

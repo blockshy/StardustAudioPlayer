@@ -3,6 +3,11 @@ import React, { useEffect, useRef } from 'react';
 import { hexToRgb } from '../utils/colorUtils';
 import { ParticleType, ParticleDirection, ThemeMode } from '../types';
 
+const BASS_BIN_COUNT = 16;
+const MAX_PARTICLES = 240;
+const BASE_PARTICLE_LIFETIME = 90;
+const PARTICLE_LIFETIME_VARIANCE = 120;
+
 interface GlobalParticlesProps {
   analyser: AnalyserNode | null;
   isPlaying: boolean;
@@ -18,7 +23,6 @@ interface GlobalParticlesProps {
   particlePalettes?: string[][];
   useThemeColor?: boolean;
   themeMode: ThemeMode;
-  customParticleUrl?: string | null;
   singerOverrideColors?: string[] | null;
 }
 
@@ -39,23 +43,15 @@ interface Particle {
 const GlobalParticles: React.FC<GlobalParticlesProps> = ({
   analyser, isPlaying, themeColor, colorfulColors = [], enabled, beatSync, sensitivity,
   particleSize = 1.0, particleBaseSpeed = 1.0, particleType, particleDirection = 270,
-  particlePalettes = [['#ffffff']], useThemeColor = true, themeMode, customParticleUrl,
+  particlePalettes = [['#ffffff']], useThemeColor = true, themeMode,
   singerOverrideColors
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animationRef = useRef<number | null>(null);
-  const customImgRef = useRef<HTMLImageElement | null>(null);
+  const frequencyDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
 
   const isDarkBase = themeMode !== 'light';
-
-  useEffect(() => {
-    if (particleType === 'custom' && customParticleUrl) {
-      const img = new Image();
-      img.src = customParticleUrl;
-      img.onload = () => { customImgRef.current = img; };
-    } else customImgRef.current = null;
-  }, [particleType, customParticleUrl]);
 
   const setCtxStyle = (ctx: CanvasRenderingContext2D, p: Particle, renderAlpha: number) => {
     if (p.palette.length === 1) {
@@ -98,12 +94,6 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
       ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   };
 
-  const drawCustom = (ctx: CanvasRenderingContext2D, p: Particle, renderAlpha: number) => {
-      if (!customImgRef.current) { drawCircle(ctx, p, renderAlpha); return; }
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation); ctx.globalAlpha = renderAlpha;
-      const s = p.size * 2; ctx.drawImage(customImgRef.current, -s/2, -s/2, s, s); ctx.restore();
-  };
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -114,19 +104,26 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
     resize();
     window.addEventListener('resize', resize);
 
-    let dataArray: Uint8Array;
-    if (analyser) dataArray = new Uint8Array(analyser.frequencyBinCount);
+    if (analyser) {
+      frequencyDataRef.current = new Uint8Array(analyser.frequencyBinCount) as unknown as Uint8Array<ArrayBuffer>;
+    } else {
+      frequencyDataRef.current = null;
+    }
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (!enabled) { particlesRef.current = []; animationRef.current = requestAnimationFrame(render); return; }
 
       let bassIntensity = 0;
-      if (analyser && isPlaying) {
-        analyser.getByteFrequencyData(new Uint8Array(dataArray));
-        const bassBins = dataArray.slice(0, 16);
-        const avgBass = bassBins.reduce((a, b) => a + b, 0) / bassBins.length;
-        bassIntensity = (avgBass / 255) * sensitivity;
+      const frequencyData = frequencyDataRef.current;
+      if (analyser && isPlaying && frequencyData) {
+        analyser.getByteFrequencyData(frequencyData);
+        const bassBins = Math.min(BASS_BIN_COUNT, frequencyData.length);
+        let bassTotal = 0;
+        for (let i = 0; i < bassBins; i++) {
+          bassTotal += frequencyData[i];
+        }
+        bassIntensity = ((bassTotal / bassBins) / 255) * sensitivity;
       }
       
       const dynamicAcceleration = beatSync && isPlaying ? (1 + (bassIntensity * 3.5)) : 1;
@@ -137,7 +134,10 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
       const spawnCount = bassIntensity > 0.6 ? Math.floor(bassIntensity * 3) : 1;
 
       if (Math.random() > spawnThreshold) {
-        for(let i=0; i<spawnCount; i++) {
+        const availableSlots = Math.max(0, MAX_PARTICLES - particlesRef.current.length);
+        const particlesToSpawn = Math.min(spawnCount, availableSlots);
+
+        for (let i = 0; i < particlesToSpawn; i++) {
             let chosenPalette: string[] = ['#ffffff'];
 
             // Priority logic for singer override
@@ -172,7 +172,7 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
 
             particlesRef.current.push({
                 x: startX, y: startY, vx: vX, vy: vY, size: scaledSize, alpha: 0.1 + Math.random() * 0.4,
-                life: 0, maxLife: 100 + Math.random() * 200, rotation: Math.random() * Math.PI * 2,
+                life: 0, maxLife: BASE_PARTICLE_LIFETIME + Math.random() * PARTICLE_LIFETIME_VARIANCE, rotation: Math.random() * Math.PI * 2,
                 rotationSpeed: (Math.random() - 0.5) * 0.1, palette: chosenPalette
             });
         }
@@ -200,7 +200,6 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
         else if (particleType === 'sakura') drawSakura(ctx, p, currentRenderAlpha);
         else if (particleType === 'snowflake') drawSnowflake(ctx, p, currentRenderAlpha);
         else if (particleType === 'star') drawStar(ctx, p, currentRenderAlpha);
-        else if (particleType === 'custom') drawCustom(ctx, p, currentRenderAlpha);
       }
 
       animationRef.current = requestAnimationFrame(render);
@@ -211,7 +210,7 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
       window.removeEventListener('resize', resize);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [analyser, isPlaying, themeColor, colorfulColors, enabled, beatSync, sensitivity, particleSize, particleBaseSpeed, particleType, themeMode, customParticleUrl, particleDirection, particlePalettes, useThemeColor, singerOverrideColors]);
+  }, [analyser, isPlaying, themeColor, colorfulColors, enabled, beatSync, sensitivity, particleSize, particleBaseSpeed, particleType, themeMode, particleDirection, particlePalettes, useThemeColor, singerOverrideColors]);
 
   return <canvas ref={canvasRef} className="absolute inset-0 z-[1] pointer-events-none" style={{ mixBlendMode: isDarkBase ? 'screen' : 'multiply' }} />;
 };

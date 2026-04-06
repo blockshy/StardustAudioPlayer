@@ -34,23 +34,37 @@ const AlbumArt: React.FC<AlbumArtProps> = ({ appState, isPlaying, analyser, curr
   const progress = duration > 0 ? currentTime / duration : 0;
 
   useEffect(() => {
+    if (coverArtStyle !== '3d-card') {
+      setAudioLevel(0);
+      return;
+    }
+
     if (!analyser || !isPlaying) {
       setAudioLevel(0);
       return;
     }
+
     let animationFrameId: number;
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     const update = () => {
       analyser.getByteFrequencyData(dataArray);
-      const bass = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
+      const bassBinCount = Math.min(10, dataArray.length);
+      let bassTotal = 0;
+      for (let i = 0; i < bassBinCount; i++) {
+        bassTotal += dataArray[i];
+      }
+      const bass = bassTotal / bassBinCount;
       const normalized = bass / 255;
       audioRef.current += (normalized - audioRef.current) * 0.2;
-      setAudioLevel(audioRef.current);
+      setAudioLevel(prev => {
+        const next = audioRef.current;
+        return Math.abs(prev - next) < 0.002 ? prev : next;
+      });
       animationFrameId = requestAnimationFrame(update);
     };
     update();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [analyser, isPlaying]);
+  }, [analyser, isPlaying, coverArtStyle]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current || coverArtStyle !== '3d-card') return;

@@ -23,6 +23,7 @@ const VisualizerBar: React.FC<VisualizerBarProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
+  const timeDomainDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   
   let isDarkBase = true;
   if (themeMode === 'light') isDarkBase = false;
@@ -42,14 +43,18 @@ const VisualizerBar: React.FC<VisualizerBarProps> = ({
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
     };
     resize();
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
 
-    let dataArray: Uint8Array;
-    if (analyser) dataArray = new Uint8Array(analyser.fftSize);
+    if (analyser) {
+      timeDomainDataRef.current = new Uint8Array(analyser.fftSize) as unknown as Uint8Array<ArrayBuffer>;
+    } else {
+      timeDomainDataRef.current = null;
+    }
 
     const render = () => {
       if (!canvasRef.current) return;
@@ -62,14 +67,15 @@ const VisualizerBar: React.FC<VisualizerBarProps> = ({
       }
 
       let rms = 0;
-      if (analyser && isPlaying) {
-         analyser.getByteTimeDomainData(new Uint8Array(dataArray));
+      const timeDomainData = timeDomainDataRef.current;
+      if (analyser && isPlaying && timeDomainData) {
+         analyser.getByteTimeDomainData(timeDomainData);
          let sum = 0;
-         for(let i = 0; i < dataArray.length; i++) {
-             const amplitude = (dataArray[i] - 128) / 128.0;
+         for(let i = 0; i < timeDomainData.length; i++) {
+             const amplitude = (timeDomainData[i] - 128) / 128.0;
              sum += amplitude * amplitude;
          }
-         rms = Math.sqrt(sum / dataArray.length);
+         rms = Math.sqrt(sum / timeDomainData.length);
       } else rms = 0.005;
 
       const targetVolume = Math.max(rms * sensitivity, 0.02);

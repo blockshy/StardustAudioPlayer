@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MdCloudUpload, MdColorLens, MdAlbum, MdGraphicEq, MdSpaceDashboard, MdEdit, MdTextFields, MdLibraryMusic, MdVideocam } from 'react-icons/md';
+import { MdCloudUpload, MdColorLens, MdAlbum, MdGraphicEq, MdSpaceDashboard, MdEdit, MdTextFields, MdLibraryMusic } from 'react-icons/md';
 import { getThemeClasses } from '../utils/themeStyles';
 import { AppState } from '../types';
 
@@ -23,7 +23,6 @@ const ConfigSidebar: React.FC<ConfigSidebarProps> = ({ activeSection, scrollToSe
         { id: 'details', label: t.trackDetails, icon: MdEdit },
         { id: 'typography', label: t.typography, icon: MdTextFields },
         { id: 'assets', label: t.assets, icon: MdLibraryMusic },
-        { id: 'recording', label: t.recording, icon: MdVideocam },
     ];
 
     return (

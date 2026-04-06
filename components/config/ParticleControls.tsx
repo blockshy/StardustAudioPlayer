@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MdSpeed, MdGraphicEq, MdFormatSize, MdCloudUpload, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdCircle, MdLocalFlorist, MdAcUnit, MdStar, MdClose, MdAdd, MdDelete } from 'react-icons/md';
+import { MdSpeed, MdGraphicEq, MdFormatSize, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdCircle, MdLocalFlorist, MdAcUnit, MdStar, MdClose, MdAdd, MdDelete } from 'react-icons/md';
 import { AppState, ParticleType, ParticleDirection } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
@@ -12,8 +12,6 @@ interface ParticleControlsProps {
     onParticleBaseSpeedChange: (speed: number) => void;
     onParticleTypeChange: (type: ParticleType) => void;
     onParticleDirectionChange: (direction: ParticleDirection) => void;
-    onFileChange: (type: 'customParticle', file: File) => void;
-    onFileRemove: (type: 'customParticle') => void;
     onParticleColorChange: (color: string, useTheme: boolean) => void;
     onParticlePalettesChange: (palettes: string[][], useTheme: boolean) => void;
     translations: any;
@@ -22,7 +20,7 @@ interface ParticleControlsProps {
 const ParticleControls: React.FC<ParticleControlsProps> = ({ 
     appState, onSensitivityChange, onVisualizerChange, onParticleSizeChange, 
     onParticleBaseSpeedChange, onParticleTypeChange, onParticleDirectionChange,
-    onFileChange, onFileRemove, onParticleColorChange, onParticlePalettesChange, translations: t 
+    onParticleColorChange, onParticlePalettesChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
     
@@ -31,7 +29,6 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
         { id: 'sakura', label: t.pTypeSakura, icon: MdLocalFlorist },
         { id: 'snowflake', label: t.pTypeSnow, icon: MdAcUnit },
         { id: 'star', label: t.pTypeStar, icon: MdStar },
-        { id: 'custom', label: t.pTypeCustom, icon: MdCloudUpload },
     ];
 
     const presetAngles = [
@@ -150,7 +147,7 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
 
                     <div>
                         <div className={`text-[10px] ${themeClasses.textMuted} uppercase tracking-wider mb-2`}>{t.shape}</div>
-                        <div className="grid grid-cols-5 gap-2">
+                        <div className="grid grid-cols-4 gap-2">
                             {particleTypes.map(pt => (
                                 <button
                                     key={pt.id}

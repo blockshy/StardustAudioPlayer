@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, CoverArtStyle, Language, ThemeMode, ParticleDirection, LyricEffect, RecordingFormat, SingerThemeGroup } from '../types';
-import { MdClose, MdTranslate, MdVideocam } from 'react-icons/md';
+import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, CoverArtStyle, Language, ThemeMode, ParticleDirection, LyricEffect, SingerThemeGroup } from '../types';
+import { MdClose } from 'react-icons/md';
 import { translations } from '../utils/translations';
 import { getThemeClasses } from '../utils/themeStyles';
 
@@ -14,7 +14,6 @@ import ConfigLayout from './config/ConfigLayout';
 import ConfigDetails from './config/ConfigDetails';
 import ConfigTypography from './config/ConfigTypography';
 import ConfigAssets from './config/ConfigAssets';
-import ConfigRecording from './config/ConfigRecording';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -61,15 +60,8 @@ interface ConfigPanelProps {
   onSavePreset: (name: string, idToOverwrite?: string) => void;
   onDeletePreset: (id: string) => void;
   onLanguageChange: (lang: Language) => void;
-  
-  // Recording Props
-  onRecordArmToggle: () => void;
-  onRecordConfigChange: (key: string, value: any) => void;
-
-  // Singer Info Props
   onSingerInfoConfigChange: (key: string, value: any) => void;
   onSingerThemeGroupsChange: (groups: SingerThemeGroup[]) => void;
-  // Fix: Added onForceOverrideChange to props interface to satisfy App.tsx usage
   onForceOverrideChange: (value: boolean) => void;
 }
 
@@ -79,7 +71,6 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   
-  // Fix: Casting translations to any to allow dynamic access if keys are missing in base definition
   const t = (translations as any)[appState.language];
   const themeClasses = getThemeClasses(appState);
 
@@ -99,7 +90,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
         entries.forEach(entry => { if (entry.isIntersecting) setActiveSection(entry.target.id.replace('section-', '')); });
     };
     observerRef.current = new IntersectionObserver(handleIntersect, options);
-    ['presets', 'appearance', 'cover', 'visuals', 'layout', 'details', 'typography', 'assets', 'recording'].forEach(id => {
+    ['presets', 'appearance', 'cover', 'visuals', 'layout', 'details', 'typography', 'assets'].forEach(id => {
         const el = document.getElementById(`section-${id}`);
         if (el) observerRef.current?.observe(el);
     });
@@ -112,7 +103,6 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
       <div className={`fixed inset-y-0 right-0 w-full sm:w-[500px] md:w-[800px] ${themeClasses.panelBg} backdrop-blur-2xl border-l ${themeClasses.border} shadow-2xl transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-50 flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className={`flex-none flex justify-between items-center border-b ${themeClasses.border} p-6`}>
             <div>
-                {/* Fix: Ensured t.title and t.subtitle exist in translations.ts */}
                 <h2 className={`font-display text-2xl font-light ${themeClasses.textMain}`}>{t.title}</h2>
                 <p className={`text-[10px] ${themeClasses.textMuted} uppercase tracking-widest mt-0.5`}>{t.subtitle}</p>
             </div>
@@ -125,15 +115,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
               <ConfigSidebar activeSection={activeSection} scrollToSection={scrollToSection} appState={appState} translations={t} />
               <div ref={contentRef} className="flex-1 overflow-y-auto config-panel-scroll p-6 md:p-8 space-y-12 scroll-smooth">
                   <ConfigPresets appState={appState} presets={props.presets} onApplyPreset={props.onApplyPreset} onSavePreset={props.onSavePreset} onDeletePreset={props.onDeletePreset} translations={t} />
-                  {/* Fix: Added onForceOverrideChange to ConfigAppearance call */}
                   <ConfigAppearance appState={appState} onThemeModeChange={props.onThemeModeChange} onColorfulColorsChange={props.onColorfulColorsChange} onThemeChange={props.onThemeChange} onColorfulBaseChange={props.onColorfulBaseChange} onSingerThemeGroupsChange={props.onSingerThemeGroupsChange} onForceOverrideChange={props.onForceOverrideChange} translations={t} />
                   <ConfigCover appState={appState} onCoverArtStyleChange={props.onCoverArtStyleChange} onAlbumProgressConfigChange={props.onAlbumProgressConfigChange} onVinylScaleChange={props.onVinylScaleChange} onVinylStyleChange={props.onVinylStyleChange} onVinylRotationSpeedChange={props.onVinylRotationSpeedChange} onVinylLabelSizeChange={props.onVinylLabelSizeChange} onVinylCenterDotChange={props.onVinylCenterDotChange} onSensitivityChange={props.onSensitivityChange} translations={t} />
-                  <ConfigVisuals appState={appState} onSensitivityChange={props.onSensitivityChange} onWaveBarConfigChange={props.onWaveBarConfigChange} onVisualizerChange={props.onVisualizerChange} onParticleSizeChange={props.onParticleSizeChange} onParticleBaseSpeedChange={props.onParticleBaseSpeedChange} onParticleTypeChange={props.onParticleTypeChange} onParticleDirectionChange={props.onParticleDirectionChange} onFileChange={props.onFileChange} onFileRemove={props.onFileRemove} onParticleColorChange={props.onParticleColorChange} onParticlePalettesChange={props.onParticlePalettesChange} translations={t} />
+                  <ConfigVisuals appState={appState} onSensitivityChange={props.onSensitivityChange} onWaveBarConfigChange={props.onWaveBarConfigChange} onVisualizerChange={props.onVisualizerChange} onParticleSizeChange={props.onParticleSizeChange} onParticleBaseSpeedChange={props.onParticleBaseSpeedChange} onParticleTypeChange={props.onParticleTypeChange} onParticleDirectionChange={props.onParticleDirectionChange} onParticleColorChange={props.onParticleColorChange} onParticlePalettesChange={props.onParticlePalettesChange} translations={t} />
                   <ConfigLayout appState={appState} onLayoutDimensionChange={props.onLayoutDimensionChange} onPlayerBarDimensionChange={props.onPlayerBarDimensionChange} onPlayerOpacityChange={props.onPlayerOpacityChange} onLyricLineConfigChange={props.onLyricLineConfigChange} onLyricSizeChange={props.onLyricSizeChange} onLyricBoldChange={props.onLyricBoldChange} onLyricColorChange={props.onLyricColorChange} onLyricOffsetChange={props.onLyricOffsetChange} onLyricGapToleranceChange={props.onLyricGapToleranceChange} onSingerInfoConfigChange={props.onSingerInfoConfigChange} translations={t} />
                   <ConfigDetails appState={appState} onMetadataChange={props.onMetadataChange} translations={t} />
                   <ConfigTypography appState={appState} onTrackTypographyChange={props.onTrackTypographyChange} translations={t} />
                   <ConfigAssets appState={appState} onFileChange={props.onFileChange} onFileRemove={props.onFileRemove} onBackgroundConfigChange={props.onBackgroundConfigChange} translations={t} />
-                  <ConfigRecording appState={appState} onRecordArmToggle={props.onRecordArmToggle} onRecordConfigChange={props.onRecordConfigChange} translations={t} />
                   <div className="h-20"></div>
               </div>
           </div>

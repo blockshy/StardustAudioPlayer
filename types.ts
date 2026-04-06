@@ -28,14 +28,12 @@ export interface Metadata {
 }
 
 export type VinylStyle = 'classic' | 'vintage' | 'modern' | 'neon';
-export type ParticleType = 'circle' | 'sakura' | 'snowflake' | 'star' | 'custom';
+export type ParticleType = 'circle' | 'sakura' | 'snowflake' | 'star';
 export type ParticleDirection = number;
 export type ThemeMode = 'dark' | 'light' | 'colorful';
 export type CoverArtStyle = 'vinyl' | '3d-card';
 export type LyricEffect = 'none' | 'fluid' | 'underline';
 export type Language = 'en' | 'zh';
-
-export type RecordingFormat = 'webm' | 'mp4';
 
 export interface AppState {
   language: Language; 
@@ -117,8 +115,6 @@ export interface AppState {
   particleColor: string;
   particlePalettes: string[][]; // Multi-color gradient support
   useThemeColorForParticles: boolean;
-  customParticleFile: File | null;
-  customParticleUrl: string | null;
 
   vinylSensitivity: number;
   barSensitivity: number;
@@ -162,14 +158,6 @@ export interface AppState {
   enableWaterReflection: boolean;
   lyricEffect: 'none' | 'glow' | 'neon' | 'gradient' | 'retro' | 'fluid' | 'metal' | 'ink' | 'glitch' | 'particles';
 
-  // Recording State
-  recordFormat: RecordingFormat;
-  recordBitrate: number; 
-  recordFps: number;
-  recordSampleRate: number;
-  recordCaptureCursor: boolean;
-  isRecordArmed: boolean;
-  isRecording: boolean;
 }
 
 export interface AudioContextState {
@@ -178,7 +166,6 @@ export interface AudioContextState {
   duration: number;
   volume: number;
   analyser: AnalyserNode | null;
-  audioDestination: MediaStreamAudioDestinationNode | null;
 }
 
 export interface AppPreset {

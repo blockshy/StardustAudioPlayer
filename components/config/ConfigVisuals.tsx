@@ -15,8 +15,6 @@ interface ConfigVisualsProps {
     onParticleBaseSpeedChange: (speed: number) => void;
     onParticleTypeChange: (type: ParticleType) => void;
     onParticleDirectionChange: (direction: ParticleDirection) => void;
-    onFileChange: (type: 'customParticle', file: File) => void;
-    onFileRemove: (type: 'customParticle') => void;
     onParticleColorChange: (color: string, useTheme: boolean) => void;
     onParticlePalettesChange: (palettes: string[][], useTheme: boolean) => void;
     translations: any;
@@ -50,8 +48,6 @@ const ConfigVisuals: React.FC<ConfigVisualsProps> = (props) => {
                     onParticleBaseSpeedChange={props.onParticleBaseSpeedChange}
                     onParticleTypeChange={props.onParticleTypeChange}
                     onParticleDirectionChange={props.onParticleDirectionChange}
-                    onFileChange={props.onFileChange}
-                    onFileRemove={props.onFileRemove}
                     onParticleColorChange={props.onParticleColorChange}
                     onParticlePalettesChange={props.onParticlePalettesChange}
                     translations={t}

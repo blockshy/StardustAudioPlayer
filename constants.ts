@@ -92,8 +92,6 @@ export const DEFAULT_STATE: AppState = {
     particleColor: '#ffffff',
     particlePalettes: [['#ffffff']], 
     useThemeColorForParticles: true,
-    customParticleFile: null,
-    customParticleUrl: null,
 
     vinylSensitivity: 1.5,
     barSensitivity: 5.0,
@@ -136,14 +134,6 @@ export const DEFAULT_STATE: AppState = {
     enableWaterReflection: false,
     lyricEffect: 'glow',
 
-    // Recording Defaults
-    recordFormat: 'webm',
-    recordBitrate: 12, 
-    recordFps: 60,
-    recordSampleRate: 48000,
-    recordCaptureCursor: false,
-    isRecordArmed: false,
-    isRecording: false,
 };
 
 export const DEFAULT_PRESETS: AppPreset[] = [
@@ -220,7 +210,6 @@ export const CONFIG_KEYS: (keyof AppState)[] = [
     'vinylStyle', 'vinylLabelSize', 'showVinylCenterDot', 'vinylScale', 'vinylRotationSpeed',
     'backgroundImageScale', 'backgroundImageX', 'backgroundImageY',
     'enableWaterReflection', 'lyricEffect',
-    'recordFormat', 'recordBitrate', 'recordFps', 'recordSampleRate', 'recordCaptureCursor',
     'singerInfoFontSize', 'singerInfoOrientation', 'singerInfoX', 'singerInfoY', 'singerThemeGroups', 'showSingerInfo', 'forceOverrideSingerTheme',
     'singerLyricOffset', 'singerLyricGapTolerance'
 ];
