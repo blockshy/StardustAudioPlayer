@@ -123,7 +123,7 @@ const GlobalParticles: React.FC<GlobalParticlesProps> = ({
 
       let bassIntensity = 0;
       if (analyser && isPlaying) {
-        analyser.getByteFrequencyData(dataArray);
+        analyser.getByteFrequencyData(new Uint8Array(dataArray));
         const bassBins = dataArray.slice(0, 16);
         const avgBass = bassBins.reduce((a, b) => a + b, 0) / bassBins.length;
         bassIntensity = (avgBass / 255) * sensitivity;

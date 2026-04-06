@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { MdAlbum, Md3dRotation, MdDonutLarge, MdRotateRight, MdRadioButtonChecked, MdCheck } from 'react-icons/md';
+import { MdAlbum, Md3DRotation, MdDonutLarge, MdRotateRight, MdRadioButtonChecked, MdCheck } from 'react-icons/md';
 import { AppState, CoverArtStyle, VinylStyle } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
@@ -34,7 +34,7 @@ const ConfigCover: React.FC<ConfigCoverProps> = ({
 
     const coverArtStyles: { id: CoverArtStyle; label: string; icon: any }[] = [
         { id: 'vinyl', label: t.styleVinyl, icon: MdAlbum },
-        { id: '3d-card', label: t.style3D, icon: Md3dRotation },
+        { id: '3d-card', label: t.style3D, icon: Md3DRotation },
     ];
 
     const vinylStyles: { id: VinylStyle; label: string; desc: string }[] = [
@@ -225,7 +225,7 @@ const ConfigCover: React.FC<ConfigCoverProps> = ({
                     <div className="animate-fade-in space-y-4 pt-2 border-t border-dashed border-opacity-30 border-gray-500">
                         <div>
                             <div className={`flex justify-between text-sm ${themeClasses.textSub} mb-2`}>
-                                <span className="font-serif flex items-center gap-2"><Md3dRotation size={14} className={themeClasses.textMuted}/> {t.artPulse}</span>
+                                <span className="font-serif flex items-center gap-2"><Md3DRotation size={14} className={themeClasses.textMuted}/> {t.artPulse}</span>
                                 <span className={`font-mono ${themeClasses.textMuted} text-xs`}>{appState.vinylSensitivity.toFixed(1)}x</span>
                             </div>
                             <input

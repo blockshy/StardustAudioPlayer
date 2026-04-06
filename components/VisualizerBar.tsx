@@ -63,7 +63,7 @@ const VisualizerBar: React.FC<VisualizerBarProps> = ({
 
       let rms = 0;
       if (analyser && isPlaying) {
-         analyser.getByteTimeDomainData(dataArray);
+         analyser.getByteTimeDomainData(new Uint8Array(dataArray));
          let sum = 0;
          for(let i = 0; i < dataArray.length; i++) {
              const amplitude = (dataArray[i] - 128) / 128.0;
