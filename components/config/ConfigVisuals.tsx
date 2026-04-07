@@ -8,11 +8,13 @@ import ParticleControls from './ParticleControls';
 
 interface ConfigVisualsProps {
     appState: AppState;
-    onSensitivityChange: (target: 'vinyl' | 'bar' | 'particle', value: number) => void;
+    onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
     onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height', value: number) => void;
-    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleBeatSync', value: boolean) => void;
+    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
     onParticleSizeChange: (size: number) => void;
     onParticleBaseSpeedChange: (speed: number) => void;
+    onParticleDensityChange: (density: number) => void;
+    onClimaxDensitySensitivityChange: (sensitivity: number) => void;
     onParticleTypeChange: (type: ParticleType) => void;
     onParticleDirectionChange: (direction: ParticleDirection) => void;
     onParticleColorChange: (color: string, useTheme: boolean) => void;
@@ -42,10 +44,11 @@ const ConfigVisuals: React.FC<ConfigVisualsProps> = (props) => {
                 
                 <ParticleControls 
                     appState={appState}
-                    onSensitivityChange={props.onSensitivityChange}
                     onVisualizerChange={props.onVisualizerChange}
                     onParticleSizeChange={props.onParticleSizeChange}
                     onParticleBaseSpeedChange={props.onParticleBaseSpeedChange}
+                    onParticleDensityChange={props.onParticleDensityChange}
+                    onClimaxDensitySensitivityChange={props.onClimaxDensitySensitivityChange}
                     onParticleTypeChange={props.onParticleTypeChange}
                     onParticleDirectionChange={props.onParticleDirectionChange}
                     onParticleColorChange={props.onParticleColorChange}

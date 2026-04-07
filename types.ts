@@ -28,7 +28,7 @@ export interface Metadata {
 }
 
 export type VinylStyle = 'classic' | 'vintage' | 'modern' | 'neon';
-export type ParticleType = 'circle' | 'sakura' | 'snowflake' | 'star';
+export type ParticleType = 'circle' | 'sakura' | 'snowflake' | 'star' | 'lily' | 'rose';
 export type ParticleDirection = number;
 export type ThemeMode = 'dark' | 'light' | 'colorful';
 export type CoverArtStyle = 'vinyl' | '3d-card';
@@ -44,6 +44,8 @@ export interface AppState {
   audioUrl: string | null;
   coverFile: File | null;
   coverUrl: string | null;
+  coverImageX: number;
+  coverImageY: number;
   backgroundImageFile: File | null; 
   backgroundImageUrl: string | null;
   backgroundImageScale: number; 
@@ -64,6 +66,8 @@ export interface AppState {
   forceOverrideSingerTheme: boolean;
   singerLyricOffset: number;
   singerLyricGapTolerance: number;
+  configSidebarWidth: number;
+  configContentLeftPadding: number;
 
   themeColor: string;
   metadata: Metadata;
@@ -76,6 +80,12 @@ export interface AppState {
   lyricInactiveColor: string | null; 
   lyricStrokeWidth: number; 
   lyricStrokeColor: string;
+  lyricShadowEnabled: boolean;
+  lyricShadowDirection: number;
+  lyricShadowStrength: number;
+  lyricShadowDistance: number;
+  lyricShadowBlur: number;
+  lyricShadowColor: string | null;
   lyricPrimaryLineIndex: number; 
   lyricDisplayOrder: number[]; 
   
@@ -86,30 +96,60 @@ export interface AppState {
   trackTitleColor: string | null;
   trackTitleBold: boolean;
   trackTitleItalic: boolean;
+  trackTitleShadowEnabled: boolean;
+  trackTitleShadowDirection: number;
+  trackTitleShadowStrength: number;
+  trackTitleShadowDistance: number;
+  trackTitleShadowBlur: number;
+  trackTitleShadowColor: string | null;
 
   trackArtistSize: number;
   trackArtistColor: string | null;
   trackArtistBold: boolean;
   trackArtistItalic: boolean;
+  trackArtistShadowEnabled: boolean;
+  trackArtistShadowDirection: number;
+  trackArtistShadowStrength: number;
+  trackArtistShadowDistance: number;
+  trackArtistShadowBlur: number;
+  trackArtistShadowColor: string | null;
 
   trackAlbumSize: number;
   trackAlbumColor: string | null;
   trackAlbumBold: boolean;
   trackAlbumItalic: boolean;
+  trackAlbumShadowEnabled: boolean;
+  trackAlbumShadowDirection: number;
+  trackAlbumShadowStrength: number;
+  trackAlbumShadowDistance: number;
+  trackAlbumShadowBlur: number;
+  trackAlbumShadowColor: string | null;
 
   trackVisualArtistSize: number;
   trackVisualArtistColor: string | null;
   trackVisualArtistBold: boolean;
   trackVisualArtistItalic: boolean;
+  trackVisualArtistShadowEnabled: boolean;
+  trackVisualArtistShadowDirection: number;
+  trackVisualArtistShadowStrength: number;
+  trackVisualArtistShadowDistance: number;
+  trackVisualArtistShadowBlur: number;
+  trackVisualArtistShadowColor: string | null;
 
   trackCoverSingerSize: number; 
   trackCoverSingerColor: string | null;
   trackCoverSingerBold: boolean;
   trackCoverSingerItalic: boolean;
+  trackCoverSingerShadowEnabled: boolean;
+  trackCoverSingerShadowDirection: number;
+  trackCoverSingerShadowStrength: number;
+  trackCoverSingerShadowDistance: number;
+  trackCoverSingerShadowBlur: number;
+  trackCoverSingerShadowColor: string | null;
 
   enableWaves: boolean;
   enableParticles: boolean;
-  enableParticleBeatSync: boolean; 
+  enableParticleClimaxDensityBoost: boolean;
   particleType: ParticleType;
   particleDirection: ParticleDirection;
   particleColor: string;
@@ -118,9 +158,10 @@ export interface AppState {
 
   vinylSensitivity: number;
   barSensitivity: number;
-  particleSensitivity: number;
   particleSize: number; 
   particleBaseSpeed: number; 
+  baseParticleDensity: number;
+  climaxDensitySensitivity: number;
   contentMaxWidth: number; 
   albumColumnWidth: number; 
   lyricsColumnWidth: number; 

@@ -14,7 +14,7 @@ interface ConfigCoverProps {
     onVinylRotationSpeedChange: (speed: number) => void;
     onVinylLabelSizeChange: (size: number) => void;
     onVinylCenterDotChange: (show: boolean) => void;
-    onSensitivityChange: (target: 'vinyl' | 'bar' | 'particle', value: number) => void;
+    onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
     translations: any;
 }
 

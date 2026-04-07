@@ -154,7 +154,7 @@ const App: React.FC = () => {
       }
     } else if (type === 'cover') {
       if (appState.coverUrl) URL.revokeObjectURL(appState.coverUrl);
-      setAppState(prev => ({ ...prev, coverFile: file, coverUrl: url }));
+      setAppState(prev => ({ ...prev, coverFile: file, coverUrl: url, coverImageX: 0, coverImageY: 0 }));
       if (url) extractDominantColor(url).then(color => setAppState(prev => ({ ...prev, themeColor: color })));
     } else if (type === 'background') {
       if (appState.backgroundImageUrl) URL.revokeObjectURL(appState.backgroundImageUrl);
@@ -185,6 +185,8 @@ const App: React.FC = () => {
           if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
           nextState.coverFile = null;
           nextState.coverUrl = null;
+          nextState.coverImageX = DEFAULT_STATE.coverImageX;
+          nextState.coverImageY = DEFAULT_STATE.coverImageY;
           break;
         case 'background':
           if (prev.backgroundImageUrl) URL.revokeObjectURL(prev.backgroundImageUrl);
@@ -222,6 +224,7 @@ const App: React.FC = () => {
   }, [appState]);
 
   const isLightMode = appState.themeMode === 'light' || (appState.themeMode === 'colorful' && appState.colorfulThemeBase === 'light');
+  const defaultLyricShadowColor = appState.themeMode === 'dark' ? '#ffffff' : '#000000';
 
   // Determine current effective override set
   const singerMappingActive = appState.themeMode === 'colorful' && themeTargetSinger && appState.forceOverrideSingerTheme;
@@ -267,8 +270,8 @@ const App: React.FC = () => {
       
       <GlobalParticles
         analyser={analyser} isPlaying={isPlaying} themeColor={appState.themeColor} colorfulColors={derivedColors}
-        enabled={appState.enableParticles} beatSync={appState.enableParticleBeatSync} sensitivity={appState.particleSensitivity}
-        particleSize={appState.particleSize} particleBaseSpeed={appState.particleBaseSpeed} particleType={appState.particleType}
+        enabled={appState.enableParticles} enableClimaxDensityBoost={appState.enableParticleClimaxDensityBoost} climaxDensitySensitivity={appState.climaxDensitySensitivity}
+        particleSize={appState.particleSize} particleBaseSpeed={appState.particleBaseSpeed} baseParticleDensity={appState.baseParticleDensity} particleType={appState.particleType}
         particleDirection={appState.particleDirection} particlePalettes={appState.particlePalettes} useThemeColor={appState.useThemeColorForParticles}
         themeMode={appState.themeMode}
         singerOverrideColors={currentSingerColors}
@@ -285,7 +288,7 @@ const App: React.FC = () => {
 
             <div className="w-[var(--lyrics-width)] h-[40vh] landscape:h-full lg:h-full relative min-h-0 transition-transform duration-500" style={{'--lyrics-width': `${appState.lyricsColumnWidth}%`, transform: `translate(${appState.lyricsColumnX}%, ${appState.lyricsColumnY}%)`} as any}>
                 <div className="absolute inset-0">
-                    <LyricsDisplay lyrics={appState.lyrics} currentTime={currentTime} themeColor={activeThemeColor} mainFontSize={appState.lyricFontSizeMain} subFontSize={appState.lyricFontSizeSub} themeMode={appState.themeMode} lyricOffset={appState.lyricOffset} lyricGapTolerance={appState.lyricGapTolerance} isBold={appState.lyricBold} activeColor={appState.lyricActiveColor} inactiveColor={appState.lyricInactiveColor} strokeWidth={appState.lyricStrokeWidth} strokeColor={appState.lyricStrokeColor} primaryLineIndex={appState.lyricPrimaryLineIndex} displayOrder={appState.lyricDisplayOrder} activeEffect={appState.activeLyricEffect} streamerColor={appState.activeLyricStreamerColor} singerOverrideColors={currentSingerColors} />
+                    <LyricsDisplay lyrics={appState.lyrics} currentTime={currentTime} themeColor={activeThemeColor} mainFontSize={appState.lyricFontSizeMain} subFontSize={appState.lyricFontSizeSub} themeMode={appState.themeMode} lyricOffset={appState.lyricOffset} lyricGapTolerance={appState.lyricGapTolerance} isBold={appState.lyricBold} activeColor={appState.lyricActiveColor} inactiveColor={appState.lyricInactiveColor} strokeWidth={appState.lyricStrokeWidth} strokeColor={appState.lyricStrokeColor} shadowEnabled={appState.lyricShadowEnabled} shadowDirection={appState.lyricShadowDirection} shadowStrength={appState.lyricShadowStrength} shadowDistance={appState.lyricShadowDistance} shadowBlur={appState.lyricShadowBlur} shadowColor={appState.lyricShadowColor || defaultLyricShadowColor} primaryLineIndex={appState.lyricPrimaryLineIndex} displayOrder={appState.lyricDisplayOrder} activeEffect={appState.activeLyricEffect} streamerColor={appState.activeLyricStreamerColor} singerOverrideColors={currentSingerColors} />
                 </div>
                 
                 {appState.showSingerInfo && activeSinger && (
@@ -345,13 +348,16 @@ const App: React.FC = () => {
           onLyricOffsetChange={(o) => setAppState(prev => ({...prev, lyricOffset: o}))}
           onLyricGapToleranceChange={(t) => setAppState(prev => ({...prev, lyricGapTolerance: t}))}
           onLyricColorChange={(k, v) => setAppState(prev => ({...prev, [k === 'active' ? 'lyricActiveColor' : k === 'inactive' ? 'lyricInactiveColor' : k === 'stroke' ? 'lyricStrokeColor' : k === 'effect' ? 'activeLyricEffect' : k === 'streamerColor' ? 'activeLyricStreamerColor' : 'lyricStrokeWidth']: v}))}
+          onLyricShadowChange={(k, v) => setAppState(prev => ({...prev, [k === 'enabled' ? 'lyricShadowEnabled' : k === 'direction' ? 'lyricShadowDirection' : k === 'strength' ? 'lyricShadowStrength' : k === 'distance' ? 'lyricShadowDistance' : k === 'blur' ? 'lyricShadowBlur' : 'lyricShadowColor']: v}))}
           onLyricLineConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'primaryIndex' ? 'lyricPrimaryLineIndex' : 'lyricDisplayOrder']: v}))}
           onTrackTypographyChange={(f, p, v) => setAppState(prev => ({...prev, [`${f}${p}`]: v}))}
           onTrackInfoSizeChange={() => {}}
           onVisualizerChange={(k, v) => setAppState(prev => ({...prev, [k]: v}))}
-          onSensitivityChange={(t, v) => setAppState(prev => ({...prev, [t === 'vinyl' ? 'vinylSensitivity' : t === 'bar' ? 'barSensitivity' : 'particleSensitivity']: v}))}
+          onSensitivityChange={(t, v) => setAppState(prev => ({...prev, [t === 'vinyl' ? 'vinylSensitivity' : 'barSensitivity']: v}))}
           onParticleSizeChange={(s) => setAppState(prev => ({...prev, particleSize: s}))}
           onParticleBaseSpeedChange={(s) => setAppState(prev => ({...prev, particleBaseSpeed: s}))}
+          onParticleDensityChange={(d) => setAppState(prev => ({...prev, baseParticleDensity: d}))}
+          onClimaxDensitySensitivityChange={(s) => setAppState(prev => ({...prev, climaxDensitySensitivity: s}))}
           onLayoutChange={(w) => setAppState(prev => ({...prev, contentMaxWidth: w}))}
           onLayoutDimensionChange={(k, v) => setAppState(prev => ({...prev, [k === 'total' ? 'contentMaxWidth' : k === 'album' ? 'albumColumnWidth' : k === 'lyrics' ? 'lyricsColumnWidth' : k === 'gap' ? 'columnGapWidth' : k === 'albumX' ? 'albumColumnX' : k === 'albumY' ? 'albumColumnY' : k === 'infoGap' ? 'albumInfoGap' : k === 'lyricsX' ? 'lyricsColumnX' : 'lyricsColumnY']: v}))}
           onPlayerOpacityChange={(v) => setAppState(prev => ({...prev, playerControlsOpacity: v}))}
@@ -365,6 +371,7 @@ const App: React.FC = () => {
           onParticlePalettesChange={(p, u) => setAppState(prev => ({...prev, particlePalettes: p, useThemeColorForParticles: u}))}
           onVinylScaleChange={(s) => setAppState(prev => ({...prev, vinylScale: s}))}
           onVinylRotationSpeedChange={(s) => setAppState(prev => ({...prev, vinylRotationSpeed: s}))}
+          onCoverConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'x' ? 'coverImageX' : 'coverImageY']: v}))}
           onBackgroundConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'backgroundImageScale' : k === 'x' ? 'backgroundImageX' : 'backgroundImageY']: v}))}
           onWaveBarConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'waveBarScale' : k === 'x' ? 'waveBarPositionX' : k === 'y' ? 'waveBarPositionY' : k === 'blur' ? 'waveBarBlur' : k === 'height' ? 'waveBarHeight' : 'waveBarOpacity']: v}))}
           onCoverArtStyleChange={(s) => setAppState(prev => ({...prev, coverArtStyle: s}))}
@@ -379,6 +386,7 @@ const App: React.FC = () => {
           onSingerInfoConfigChange={(key, value) => setAppState(prev => ({ ...prev, [key]: value }))}
           onSingerThemeGroupsChange={(groups) => setAppState(prev => ({ ...prev, singerThemeGroups: groups }))}
           onForceOverrideChange={(v) => setAppState(prev => ({ ...prev, forceOverrideSingerTheme: v }))}
+          onConfigPanelLayoutChange={(k, v) => setAppState(prev => ({ ...prev, [k === 'sidebarWidth' ? 'configSidebarWidth' : 'configContentLeftPadding']: v }))}
         />
       </div>
     </div>

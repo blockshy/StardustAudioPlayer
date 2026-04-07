@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MdFormatListNumbered, MdStar, MdFormatPaint, MdTimer, MdAutoFixHigh } from 'react-icons/md';
+import { MdFormatListNumbered, MdStar, MdFormatPaint, MdTimer, MdAutoFixHigh, MdBlurOn } from 'react-icons/md';
 import { AppState, LyricEffect } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
@@ -10,6 +10,7 @@ interface LyricsStylingProps {
     onLyricSizeChange: (type: 'main' | 'sub', size: number) => void;
     onLyricBoldChange: (isBold: boolean) => void;
     onLyricColorChange: (key: 'active' | 'inactive' | 'stroke' | 'strokeWidth' | 'effect' | 'streamerColor', value: string | number | null | LyricEffect) => void;
+    onLyricShadowChange: (key: 'enabled' | 'direction' | 'strength' | 'distance' | 'blur' | 'color', value: boolean | number | string | null) => void;
     onLyricOffsetChange: (offset: number) => void;
     onLyricGapToleranceChange: (tolerance: number) => void;
     translations: any;
@@ -17,7 +18,7 @@ interface LyricsStylingProps {
 
 const LyricsStyling: React.FC<LyricsStylingProps> = ({ 
     appState, onLyricLineConfigChange, onLyricSizeChange, onLyricBoldChange, 
-    onLyricColorChange, onLyricOffsetChange, onLyricGapToleranceChange, translations: t 
+    onLyricColorChange, onLyricShadowChange, onLyricOffsetChange, onLyricGapToleranceChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
     const [orderInput, setOrderInput] = useState(appState.lyricDisplayOrder.map(i => i + 1).join(', '));
@@ -39,10 +40,21 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
         { id: 'fluid', label: t.effFluid },
         { id: 'underline', label: t.effUnderline },
     ];
+    const defaultShadowColor = appState.themeMode === 'dark' ? '#ffffff' : '#000000';
+    const shadowDirections = [
+        { value: 270, label: t.top },
+        { value: 315, label: t.dirUpRight },
+        { value: 0, label: t.right },
+        { value: 45, label: t.dirDownRight },
+        { value: 90, label: t.bottom },
+        { value: 135, label: t.dirDownLeft },
+        { value: 180, label: t.left },
+        { value: 225, label: t.dirUpLeft }
+    ];
 
     return (
         <>
-            <div className="space-y-4 pt-2 border-t border-dashed border-gray-500/30">
+            <div className="space-y-4 border-dashed border-gray-500/30">
                 <div className="flex justify-between items-center">
                     <span className={`text-sm ${themeClasses.textSub} font-serif flex items-center gap-2`}><MdFormatListNumbered /> {t.multiLine}</span>
                 </div>
@@ -86,7 +98,7 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
             <hr className={themeClasses.border} />
 
             <div>
-                <div className={`flex justify-between text-sm ${themeClasses.textSub} mb-2`}>
+                <div className={`flex justify-between text-sm ${themeClasses.textSub} mt-4`}>
                     <span className="font-serif flex items-center gap-2"><MdStar className={themeClasses.textMuted} /> {t.mainFontSize}</span>
                     <span className={`font-mono ${themeClasses.textMuted} text-xs`}>{appState.lyricFontSizeMain}px</span>
                 </div>
@@ -102,7 +114,7 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
             </div>
             
             <div>
-                <div className={`flex justify-between text-sm ${themeClasses.textSub} mb-2`}>
+                <div className={`flex justify-between text-sm ${themeClasses.textSub} mt-4`}>
                     <span className="font-serif">{t.subFontSize}</span>
                     <span className={`font-mono ${themeClasses.textMuted} text-xs`}>{appState.lyricFontSizeSub}px</span>
                 </div>
@@ -117,7 +129,7 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
                 />
             </div>
 
-            <label className="flex items-center justify-between cursor-pointer group pt-2">
+            <label className="flex items-center justify-between cursor-pointer group pt-2 pb-2">
                 <span className={`text-sm ${themeClasses.textSub} group-hover:${themeClasses.textMain} transition-colors font-serif`}>{t.boldLyrics}</span>
                 <div className="relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in">
                     <input 
@@ -133,7 +145,7 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
 
             <hr className={themeClasses.border} />
 
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
                 <div className="flex justify-between items-center">
                     <span className={`text-sm ${themeClasses.textSub} font-serif flex items-center gap-2`}><MdFormatPaint /> {t.customAppearance}</span>
                 </div>
@@ -199,6 +211,104 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
                         <span className={`font-mono ${themeClasses.textMuted} text-[10px] w-6 text-right`}>{appState.lyricStrokeWidth}px</span>
                     </div>
                 </div>
+                
+                <div className={`${themeClasses.inputBg} rounded-lg p-3 border ${themeClasses.border} space-y-3`}>
+                    <label className="flex items-center justify-between cursor-pointer group">
+                        <span className={`text-xs ${themeClasses.textMuted} font-sans uppercase flex items-center gap-2`}><MdBlurOn /> {t.shadow}</span>
+                        <div className="relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in">
+                            <input
+                                type="checkbox"
+                                checked={appState.lyricShadowEnabled}
+                                onChange={(e) => onLyricShadowChange('enabled', e.target.checked)}
+                                className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out checked:translate-x-full checked:border-0"
+                                style={{ borderColor: '#4b5563' }}
+                            />
+                            <div className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-200 ${appState.lyricShadowEnabled ? 'bg-emerald-500' : 'bg-gray-700'}`}></div>
+                        </div>
+                    </label>
+
+                    {appState.lyricShadowEnabled && (
+                        <div className="space-y-3 animate-fade-in">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className={`text-[10px] ${themeClasses.textMuted} uppercase`}>{t.shadowDirection}</span>
+                                <select
+                                    value={appState.lyricShadowDirection}
+                                    onChange={(e) => onLyricShadowChange('direction', Number(e.target.value))}
+                                    className={`${themeClasses.itemBg} ${themeClasses.textMain} border ${themeClasses.border} rounded px-2 py-1 text-xs focus:outline-none`}
+                                >
+                                    {shadowDirections.map(direction => (
+                                        <option key={direction.value} value={direction.value}>{direction.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <div className="flex items-center justify-between gap-3">
+                                <span className={`text-[10px] ${themeClasses.textMuted} uppercase`}>{t.shadowColor}</span>
+                                <div className="flex items-center gap-2">
+                                    {appState.lyricShadowColor && (
+                                        <button onClick={() => onLyricShadowChange('color', null)} className={`text-[10px] ${themeClasses.textMuted} hover:${themeClasses.textMain}`}>{t.reset}</button>
+                                    )}
+                                    <div className={`relative w-6 h-6 rounded-full overflow-hidden border ${themeClasses.isDarkBase ? 'border-white/20' : 'border-black/20'}`}>
+                                        <input
+                                            type="color"
+                                            value={appState.lyricShadowColor || defaultShadowColor}
+                                            onChange={(e) => onLyricShadowChange('color', e.target.value)}
+                                            className="absolute inset-0 w-[200%] h-[200%] -top-1/2 -left-1/2 cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className={`flex justify-between text-[10px] ${themeClasses.textSub} mb-1`}>
+                                    <span>{t.shadowStrength}</span>
+                                    <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.lyricShadowStrength * 100)}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value={appState.lyricShadowStrength}
+                                    onChange={(e) => onLyricShadowChange('strength', Number(e.target.value))}
+                                    className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                />
+                            </div>
+
+                            <div>
+                                <div className={`flex justify-between text-[10px] ${themeClasses.textSub} mb-1`}>
+                                    <span>{t.shadowDistance}</span>
+                                    <span className={`font-mono ${themeClasses.textMuted}`}>{appState.lyricShadowDistance}px</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="20"
+                                    step="1"
+                                    value={appState.lyricShadowDistance}
+                                    onChange={(e) => onLyricShadowChange('distance', Number(e.target.value))}
+                                    className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                />
+                            </div>
+
+                            <div>
+                                <div className={`flex justify-between text-[10px] ${themeClasses.textSub} mb-1`}>
+                                    <span>{t.shadowBlur}</span>
+                                    <span className={`font-mono ${themeClasses.textMuted}`}>{appState.lyricShadowBlur}px</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="30"
+                                    step="1"
+                                    value={appState.lyricShadowBlur}
+                                    onChange={(e) => onLyricShadowChange('blur', Number(e.target.value))}
+                                    className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <div className={`${themeClasses.inputBg} rounded-lg p-3 border ${themeClasses.border} space-y-3`}>
                     <span className={`text-xs ${themeClasses.textMuted} font-sans uppercase flex items-center gap-2 mb-2`}>
@@ -238,7 +348,7 @@ const LyricsStyling: React.FC<LyricsStylingProps> = ({
 
             <hr className={themeClasses.border} />
 
-            <div>
+            <div className="pt-4">
                 <div className={`flex justify-between text-sm ${themeClasses.textSub} mb-2`}>
                     <span className="font-serif flex items-center gap-2"><MdTimer /> {t.sync}</span>
                     <span className={`font-mono ${themeClasses.textMuted} text-xs`}>

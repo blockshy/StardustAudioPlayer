@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { MdSpeed, MdGraphicEq, MdFormatSize, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdCircle, MdLocalFlorist, MdAcUnit, MdStar, MdClose, MdAdd, MdDelete } from 'react-icons/md';
+import { MdSpeed, MdGraphicEq, MdFormatSize, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdCircle, MdLocalFlorist, MdAcUnit, MdStar, MdSpa, MdClose, MdAdd, MdDelete } from 'react-icons/md';
 import { AppState, ParticleType, ParticleDirection } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface ParticleControlsProps {
     appState: AppState;
-    onSensitivityChange: (target: 'vinyl' | 'bar' | 'particle', value: number) => void;
-    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleBeatSync', value: boolean) => void;
+    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
     onParticleSizeChange: (size: number) => void;
     onParticleBaseSpeedChange: (speed: number) => void;
+    onParticleDensityChange: (density: number) => void;
+    onClimaxDensitySensitivityChange: (sensitivity: number) => void;
     onParticleTypeChange: (type: ParticleType) => void;
     onParticleDirectionChange: (direction: ParticleDirection) => void;
     onParticleColorChange: (color: string, useTheme: boolean) => void;
@@ -18,8 +19,8 @@ interface ParticleControlsProps {
 }
 
 const ParticleControls: React.FC<ParticleControlsProps> = ({ 
-    appState, onSensitivityChange, onVisualizerChange, onParticleSizeChange, 
-    onParticleBaseSpeedChange, onParticleTypeChange, onParticleDirectionChange,
+    appState, onVisualizerChange, onParticleSizeChange, 
+    onParticleBaseSpeedChange, onParticleDensityChange, onClimaxDensitySensitivityChange, onParticleTypeChange, onParticleDirectionChange,
     onParticleColorChange, onParticlePalettesChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
@@ -27,6 +28,8 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
     const particleTypes: { id: ParticleType; label: string; icon: any }[] = [
         { id: 'circle', label: t.pTypeDot, icon: MdCircle },
         { id: 'sakura', label: t.pTypeSakura, icon: MdLocalFlorist },
+        { id: 'lily', label: t.pTypeLily, icon: MdLocalFlorist },
+        { id: 'rose', label: t.pTypeRose, icon: MdSpa },
         { id: 'snowflake', label: t.pTypeSnow, icon: MdAcUnit },
         { id: 'star', label: t.pTypeStar, icon: MdStar },
     ];
@@ -94,43 +97,43 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
                 <div className={`${themeClasses.itemActive} rounded-lg p-3 ml-2 border-l-2 border-emerald-500/30 transition-all animate-fade-in space-y-4`}>
                     <label className={`flex items-center justify-between cursor-pointer group pb-2 border-b ${themeClasses.border}`}>
                         <span className={`text-xs ${themeClasses.textSub} group-hover:${themeClasses.textMain} transition-colors font-sans flex items-center gap-2`}>
-                            <MdSpeed className={themeClasses.textMuted} /> {t.beatSync}
+                            <MdSpeed className={themeClasses.textMuted} /> {t.climaxDensityBoost}
                         </span>
                         <div className="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
                             <input 
                                 type="checkbox" 
-                                checked={appState.enableParticleBeatSync}
-                                onChange={(e) => onVisualizerChange('enableParticleBeatSync', e.target.checked)}
+                                checked={appState.enableParticleClimaxDensityBoost}
+                                onChange={(e) => onVisualizerChange('enableParticleClimaxDensityBoost', e.target.checked)}
                                 className="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out checked:translate-x-full checked:border-0"
                                 style={{borderColor: '#4b5563'}}
                             />
-                            <div className={`toggle-label block overflow-hidden h-4 rounded-full cursor-pointer transition-colors duration-200 ${appState.enableParticleBeatSync ? 'bg-emerald-500' : 'bg-gray-700'}`}></div>
+                            <div className={`toggle-label block overflow-hidden h-4 rounded-full cursor-pointer transition-colors duration-200 ${appState.enableParticleClimaxDensityBoost ? 'bg-emerald-500' : 'bg-gray-700'}`}></div>
                         </div>
                     </label>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {appState.enableParticleClimaxDensityBoost && (
                         <div>
                             <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
-                                <span className="flex items-center gap-1"><MdGraphicEq size={14} className="opacity-70"/> {t.sensitivity}</span>
-                                <span className={`font-mono ${themeClasses.textMuted}`}>{appState.particleSensitivity.toFixed(1)}x</span>
+                                <span className="flex items-center gap-1"><MdGraphicEq size={14} className="opacity-70"/> {t.climaxSensitivity}</span>
+                                <span className={`font-mono ${themeClasses.textMuted}`}>{appState.climaxDensitySensitivity.toFixed(1)}x</span>
                             </div>
                             <input
-                                type="range" min="0.5" max="5.0" step="0.1" value={appState.particleSensitivity}
-                                onChange={(e) => onSensitivityChange('particle', Number(e.target.value))}
+                                type="range" min="0.3" max="3.0" step="0.1" value={appState.climaxDensitySensitivity}
+                                onChange={(e) => onClimaxDensitySensitivityChange(Number(e.target.value))}
                                 className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
                             />
                         </div>
-                        <div>
-                            <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
-                                <span className="flex items-center gap-1"><MdFormatSize size={14} className="opacity-70"/> {t.size}</span>
-                                <span className={`font-mono ${themeClasses.textMuted}`}>{appState.particleSize.toFixed(1)}x</span>
-                            </div>
-                            <input
-                                type="range" min="0.2" max="3.0" step="0.1" value={appState.particleSize}
-                                onChange={(e) => onParticleSizeChange(Number(e.target.value))}
-                                className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
-                            />
+                    )}
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span className="flex items-center gap-1"><MdFormatSize size={14} className="opacity-70"/> {t.size}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.particleSize.toFixed(1)}x</span>
                         </div>
+                        <input
+                            type="range" min="0.2" max="8.0" step="0.1" value={appState.particleSize}
+                            onChange={(e) => onParticleSizeChange(Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
                     </div>
                     
                     <div>
@@ -146,8 +149,20 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
                     </div>
 
                     <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span className="font-serif flex items-center gap-2"><MdGraphicEq size={14} className="opacity-70"/> {t.baseParticleDensity}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.baseParticleDensity.toFixed(1)}x</span>
+                        </div>
+                        <input
+                            type="range" min="0.2" max="2.5" step="0.1" value={appState.baseParticleDensity}
+                            onChange={(e) => onParticleDensityChange(Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+
+                    <div>
                         <div className={`text-[10px] ${themeClasses.textMuted} uppercase tracking-wider mb-2`}>{t.shape}</div>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                             {particleTypes.map(pt => (
                                 <button
                                     key={pt.id}

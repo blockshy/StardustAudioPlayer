@@ -16,6 +16,12 @@ interface LyricsDisplayProps {
   inactiveColor: string | null;
   strokeWidth: number;
   strokeColor: string;
+  shadowEnabled: boolean;
+  shadowDirection: number;
+  shadowStrength: number;
+  shadowDistance: number;
+  shadowBlur: number;
+  shadowColor: string;
   primaryLineIndex: number;
   displayOrder: number[];
   activeEffect?: LyricEffect; 
@@ -37,6 +43,12 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
   inactiveColor,
   strokeWidth,
   strokeColor,
+  shadowEnabled,
+  shadowDirection,
+  shadowStrength,
+  shadowDistance,
+  shadowBlur,
+  shadowColor,
   primaryLineIndex,
   displayOrder,
   activeEffect = 'none',
@@ -48,6 +60,21 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
   
   const isDarkBase = themeMode !== 'light';
   const adjustedTime = currentTime - lyricOffset;
+  const shadowRadians = (shadowDirection * Math.PI) / 180;
+  const shadowX = Math.cos(shadowRadians) * shadowDistance;
+  const shadowY = Math.sin(shadowRadians) * shadowDistance;
+  const toRgba = (color: string, alpha: number) => {
+    const fallback = `rgba(0,0,0,${alpha.toFixed(2)})`;
+    if (!color) return fallback;
+    const hex = color.trim().replace('#', '');
+    if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(hex)) return fallback;
+    const normalized = hex.length === 3 ? hex.split('').map(ch => `${ch}${ch}`).join('') : hex;
+    const r = parseInt(normalized.slice(0, 2), 16);
+    const g = parseInt(normalized.slice(2, 4), 16);
+    const b = parseInt(normalized.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+  };
+  const shadowColorRgba = toRgba(shadowColor, shadowStrength);
 
   let activeIndex = lyrics.findIndex(
     (line) => adjustedTime >= line.start && adjustedTime <= line.end
@@ -99,7 +126,7 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
         @keyframes flow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
         .active-underline::after {
             content: ''; position: absolute; bottom: -4px; left: 50%; width: 0%; height: 2px;
-            background-color: var(--active-color); box-shadow: 0 0 8px var(--active-color);
+            background-color: var(--active-color); box-shadow: 0 0 8px var(--active-color), var(--underline-shadow, 0 0 0 transparent);
             transform: translateX(-50%); transition: width 0.5s ease-out;
         }
         .active-underline.active::after { width: 60%; }
@@ -131,6 +158,7 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
             const strokeStyle = strokeWidth > 0 ? { WebkitTextStroke: `${strokeWidth}px ${strokeColor}` } : {};
 
             const isSingerGradient = isActive && singerOverrideColors && singerOverrideColors.length > 1;
+            const underlineShadow = shadowEnabled ? `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px ${shadowBlur}px ${shadowColorRgba}` : '0 0 0 transparent';
 
             return (
             <div
@@ -140,7 +168,7 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
                 style={{ 
                     opacity, transform: `scale(${scale})`, filter: `blur(${blurAmount}px)`,
                     color: isActive ? finalActive : finalInactive,
-                    '--active-color': finalActive, '--streamer-color': streamerColor
+                    '--active-color': finalActive, '--streamer-color': streamerColor, '--underline-shadow': underlineShadow
                 } as React.CSSProperties}
             >
                 {displayOrder.map((sourceIndex, renderIdx) => {
@@ -148,11 +176,15 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
                     if (!text) return null;
                     const isPrimary = sourceIndex === primaryLineIndex;
                     const applyFluid = isActive && activeEffect === 'fluid';
+                    const shouldRenderShadow = shadowEnabled && isActive;
+                    const shadowValue = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px ${shadowBlur}px ${shadowColorRgba}`;
+                    const shouldUseDropShadow = shouldRenderShadow && (applyFluid || isSingerGradient);
                     
                     const dynamicTextStyle: React.CSSProperties = {
                         fontSize: `${isPrimary ? mainFontSize : subFontSize}px`,
                         ...strokeStyle,
-                        textShadow: isActive && isPrimary && activeEffect === 'none' && !isSingerGradient ? '0 4px 12px rgba(0,0,0,0.2)' : 'none'
+                        textShadow: shouldRenderShadow && !shouldUseDropShadow ? shadowValue : 'none',
+                        filter: shouldUseDropShadow ? `drop-shadow(${shadowValue})` : 'none'
                     };
 
                     if (isSingerGradient) {

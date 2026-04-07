@@ -8,12 +8,13 @@ interface ConfigAssetsProps {
     appState: AppState;
     onFileChange: (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt', file: File) => void;
     onFileRemove: (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => void;
+    onCoverConfigChange: (key: 'x' | 'y', value: number) => void;
     onBackgroundConfigChange: (key: 'scale' | 'x' | 'y', value: number) => void;
     translations: any;
 }
 
 const ConfigAssets: React.FC<ConfigAssetsProps> = ({ 
-    appState, onFileChange, onFileRemove, onBackgroundConfigChange, translations: t 
+    appState, onFileChange, onFileRemove, onCoverConfigChange, onBackgroundConfigChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
     
@@ -35,6 +36,11 @@ const ConfigAssets: React.FC<ConfigAssetsProps> = ({
         onBackgroundConfigChange('scale', 1.05);
         onBackgroundConfigChange('x', 0);
         onBackgroundConfigChange('y', 0);
+    };
+
+    const resetCoverPosition = () => {
+        onCoverConfigChange('x', 0);
+        onCoverConfigChange('y', 0);
     };
 
     return (
@@ -85,6 +91,53 @@ const ConfigAssets: React.FC<ConfigAssetsProps> = ({
                         >
                             <MdClose size={16} />
                         </button>
+                    )}
+
+                    {item.id === 'cover' && appState.coverUrl && (
+                        <div className={`mt-3 pt-3 border-t ${themeClasses.border} animate-fade-in space-y-4`}>
+                            <div className="flex items-center justify-between mb-1">
+                                <span className={`text-[10px] font-bold ${themeClasses.textMuted} uppercase tracking-wider`}>{t.albumArt}</span>
+                                <button
+                                    onClick={resetCoverPosition}
+                                    className={`text-[10px] flex items-center gap-1 hover:${themeClasses.textMain} ${themeClasses.textMuted} transition-colors`}
+                                    title="Reset Position"
+                                >
+                                    <MdRestartAlt /> {t.reset}
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                                        <span className="flex items-center gap-1"><MdPanTool className={`rotate-0 ${themeClasses.textMuted}`} /> {t.posX}</span>
+                                        <span className={`font-mono ${themeClasses.textMuted}`}>{appState.coverImageX}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="-50"
+                                        max="50"
+                                        step="1"
+                                        value={appState.coverImageX}
+                                        onChange={(e) => onCoverConfigChange('x', Number(e.target.value))}
+                                        className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                    />
+                                </div>
+                                <div>
+                                    <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                                        <span className="flex items-center gap-1"><MdPanTool className={`rotate-90 ${themeClasses.textMuted}`} /> {t.posY}</span>
+                                        <span className={`font-mono ${themeClasses.textMuted}`}>{appState.coverImageY}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="-50"
+                                        max="50"
+                                        step="1"
+                                        value={appState.coverImageY}
+                                        onChange={(e) => onCoverConfigChange('y', Number(e.target.value))}
+                                        className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     )}
                     
                     {item.id === 'background' && appState.backgroundImageUrl && (

@@ -16,6 +16,9 @@ interface VinylDiskProps {
   showCenterDot: boolean;
   scale: number;
   rotationSpeed: number;
+  coverImageScale?: number;
+  coverImageX?: number;
+  coverImageY?: number;
   
   // Progress Ring Props
   enableProgress?: boolean;
@@ -37,6 +40,9 @@ const VinylDisk: React.FC<VinylDiskProps> = ({
   showCenterDot,
   scale = 1.0,
   rotationSpeed = 1.0,
+  coverImageScale = 1.05,
+  coverImageX = 0,
+  coverImageY = 0,
   enableProgress = false,
   progress = 0,
   progressWidth = 4,
@@ -144,7 +150,7 @@ const VinylDisk: React.FC<VinylDiskProps> = ({
         >
           {coverUrl ? (
             <div className="w-full h-full relative">
-                <img src={coverUrl} alt="Album Cover" className="w-full h-full object-cover opacity-95" />
+                <img src={coverUrl} alt="Album Cover" className="w-full h-full object-cover opacity-95" style={{ objectPosition: `${50 + coverImageX}% ${50 + coverImageY}%` }} />
                 <div className="absolute inset-0 bg-white/10 mix-blend-overlay pointer-events-none" 
                      style={{backgroundImage: 'radial-gradient(rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '4px 4px'}}></div>
             </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MdCloudUpload, MdColorLens, MdAlbum, MdGraphicEq, MdSpaceDashboard, MdEdit, MdTextFields, MdLibraryMusic } from 'react-icons/md';
+import { MdCloudUpload, MdColorLens, MdAlbum, MdGraphicEq, MdSpaceDashboard, MdEdit, MdTextFields, MdLibraryMusic, MdLyrics } from 'react-icons/md';
 import { getThemeClasses } from '../utils/themeStyles';
 import { AppState } from '../types';
 
@@ -9,9 +9,10 @@ interface ConfigSidebarProps {
     scrollToSection: (id: string) => void;
     appState: AppState;
     translations: any;
+    width: number;
 }
 
-const ConfigSidebar: React.FC<ConfigSidebarProps> = ({ activeSection, scrollToSection, appState, translations: t }) => {
+const ConfigSidebar: React.FC<ConfigSidebarProps> = ({ activeSection, scrollToSection, appState, translations: t, width }) => {
     const themeClasses = getThemeClasses(appState);
 
     const sections = [
@@ -19,14 +20,18 @@ const ConfigSidebar: React.FC<ConfigSidebarProps> = ({ activeSection, scrollToSe
         { id: 'appearance', label: t.appearance, icon: MdColorLens },
         { id: 'cover', label: t.albumArtStyle, icon: MdAlbum },
         { id: 'visuals', label: t.visualEffects, icon: MdGraphicEq },
-        { id: 'layout', label: t.lyricsLayout, icon: MdSpaceDashboard },
+        { id: 'layout', label: t.layout, icon: MdSpaceDashboard },
+        { id: 'lyrics', label: t.lyrics, icon: MdLyrics },
         { id: 'details', label: t.trackDetails, icon: MdEdit },
         { id: 'typography', label: t.typography, icon: MdTextFields },
         { id: 'assets', label: t.assets, icon: MdLibraryMusic },
     ];
 
     return (
-        <div className={`flex-none w-[60px] md:w-[160px] border-r ${themeClasses.border} flex flex-col overflow-y-auto hide-scrollbar py-4 gap-1`}>
+        <div
+            className={`flex-none w-[60px] md:w-[var(--sidebar-width)] border-r ${themeClasses.border} flex flex-col overflow-y-auto hide-scrollbar py-4 gap-1`}
+            style={{ '--sidebar-width': `${width}px` } as React.CSSProperties}
+        >
             {sections.map(section => (
                 <button
                     key={section.id}

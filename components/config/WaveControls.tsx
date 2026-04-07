@@ -6,9 +6,9 @@ import { getThemeClasses } from '../../utils/themeStyles';
 
 interface WaveControlsProps {
     appState: AppState;
-    onSensitivityChange: (target: 'vinyl' | 'bar' | 'particle', value: number) => void;
+    onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
     onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height', value: number) => void;
-    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleBeatSync', value: boolean) => void;
+    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
     translations: any;
 }
 

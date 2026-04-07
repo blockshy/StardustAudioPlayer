@@ -1,23 +1,16 @@
 
 import React from 'react';
-import { MdFormatSize, MdPerson, MdTextRotateVertical, MdTextRotationNone, MdPanTool, MdTimer } from 'react-icons/md';
-import { AppState, LyricEffect } from '../../types';
+import { MdSpaceDashboard, MdPerson, MdTextRotateVertical, MdTextRotationNone, MdPanTool, MdTimer, MdFormatSize } from 'react-icons/md';
+import { AppState } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 import LayoutDimensions from './LayoutDimensions';
 import PlayerBarControls from './PlayerBarControls';
-import LyricsStyling from './LyricsStyling';
 
 interface ConfigLayoutProps {
     appState: AppState;
     onLayoutDimensionChange: (key: 'total' | 'album' | 'lyrics' | 'gap' | 'albumX' | 'albumY' | 'infoGap' | 'lyricsX' | 'lyricsY', value: number) => void;
     onPlayerBarDimensionChange: (key: 'width' | 'height' | 'blur' | 'x' | 'y', value: number) => void;
     onPlayerOpacityChange: (value: number) => void;
-    onLyricLineConfigChange: (key: 'primaryIndex' | 'order', value: number | number[]) => void;
-    onLyricSizeChange: (type: 'main' | 'sub', size: number) => void;
-    onLyricBoldChange: (isBold: boolean) => void;
-    onLyricColorChange: (key: 'active' | 'inactive' | 'stroke' | 'strokeWidth' | 'effect' | 'streamerColor', value: string | number | null | LyricEffect) => void;
-    onLyricOffsetChange: (offset: number) => void;
-    onLyricGapToleranceChange: (tolerance: number) => void;
     onSingerInfoConfigChange?: (key: string, value: any) => void;
     translations: any;
 }
@@ -29,7 +22,7 @@ const ConfigLayout: React.FC<ConfigLayoutProps> = (props) => {
     return (
         <div id="section-layout" className="space-y-4 scroll-mt-4">
             <h3 className={`text-xs font-sans font-bold ${themeClasses.textMuted} uppercase tracking-widest flex items-center gap-2`}>
-                <MdFormatSize className="text-lg" /> {t.lyricsLayout}
+                <MdSpaceDashboard className="text-lg" /> {t.layout}
             </h3>
             <div className={`${themeClasses.itemBg} rounded-xl p-4 space-y-4 border ${themeClasses.border}`}>
                 <LayoutDimensions 
@@ -150,17 +143,6 @@ const ConfigLayout: React.FC<ConfigLayoutProps> = (props) => {
                         </div>
                     )}
                 </div>
-                
-                <LyricsStyling 
-                    appState={appState} 
-                    onLyricLineConfigChange={props.onLyricLineConfigChange}
-                    onLyricSizeChange={props.onLyricSizeChange}
-                    onLyricBoldChange={props.onLyricBoldChange}
-                    onLyricColorChange={props.onLyricColorChange}
-                    onLyricOffsetChange={props.onLyricOffsetChange}
-                    onLyricGapToleranceChange={props.onLyricGapToleranceChange}
-                    translations={t}
-                />
             </div>
         </div>
     );
