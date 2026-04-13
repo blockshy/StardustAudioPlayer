@@ -4,7 +4,7 @@
 
 StardustAudioPlayer 是一个高可定制的本地音频可视化播放器，围绕黑胶视觉、粒子系统、歌词渲染和主题联动构建，适合用于音乐展示画面、歌词视频素材和本地播放可视化场景。
 
-项目部署网站：<https://player.rsec.top>
+项目部署网站：<https://player.tyukki.com>
 
 ### 功能特性
 
@@ -40,7 +40,7 @@ StardustAudioPlayer 是一个高可定制的本地音频可视化播放器，围
 
 StardustAudioPlayer is a highly customizable local audio visualizer and player built around vinyl-style presentation, particle effects, lyric rendering, and singer-driven theming. It is suitable for music showcase scenes, lyric-video assets, and local playback visualization.
 
-Project deployment website: <https://player.rsec.top>
+Project deployment website: <https://player.tyukki.com>
 
 ### Features
 
