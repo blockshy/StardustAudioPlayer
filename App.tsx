@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, Language, ParticleDirection, LyricEffect, SingerInfoLine } from './types';
 import { parseSRT, parseSingerSRT } from './utils/srtParser';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
@@ -13,6 +13,7 @@ import BackgroundLayer from './components/BackgroundLayer';
 import TopHeader from './components/TopHeader';
 import TrackInfo from './components/TrackInfo';
 import PlayerControlBar from './components/PlayerControlBar';
+import { loadPersistedAsset, PersistedAssetType, PERSISTED_ASSET_TYPES, removePersistedAsset, savePersistedAsset } from './utils/persistedAssets';
 
 const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -40,8 +41,14 @@ const App: React.FC = () => {
           return saved ? JSON.parse(saved) : [];
       } catch (e) { return []; }
   });
+  const [isRestoringAssets, setIsRestoringAssets] = useState(false);
+  const appStateRef = useRef(appState);
 
   const { isPlaying, currentTime, duration, volume, analyser, togglePlay, seek, setVolume } = useAudioPlayer(appState.audioUrl);
+
+  useEffect(() => {
+    appStateRef.current = appState;
+  }, [appState]);
 
   // --- Theme Color Lookahead Logic ---
   const lookaheadTime = 0.3; 
@@ -129,49 +136,99 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [togglePlay]);
 
-  const handleFileChange = async (type: any, file: File) => {
-    const url = (type === 'srt' || type === 'singerSrt') ? null : URL.createObjectURL(file);
+  const updateThemeColorFromUrl = useCallback((url: string) => {
+    extractDominantColor(url)
+      .then(color => setAppState(prev => ({ ...prev, themeColor: color })))
+      .catch(() => undefined);
+  }, []);
+
+  const applyAssetFile = useCallback(async (
+    type: PersistedAssetType,
+    file: File,
+    options: { persist?: boolean; allowEmbeddedCover?: boolean } = {}
+  ) => {
+    const { persist = true, allowEmbeddedCover = true } = options;
+    const currentState = appStateRef.current;
+
     if (type === 'audio') {
-      if (appState.audioUrl) URL.revokeObjectURL(appState.audioUrl);
-      setAppState(prev => ({ ...prev, audioFile: file, audioUrl: url, metadata: { ...prev.metadata, title: file.name.replace(/\.[^/.]+$/, "") } }));
+      const url = URL.createObjectURL(file);
+      if (currentState.audioUrl) URL.revokeObjectURL(currentState.audioUrl);
+      setAppState(prev => ({
+        ...prev,
+        audioFile: file,
+        audioUrl: url,
+        metadata: { ...prev.metadata, title: file.name.replace(/\.[^/.]+$/, "") }
+      }));
+
       if ((window as any).jsmediatags) {
-          (window as any).jsmediatags.read(file, {
-              onSuccess: (tag: any) => {
-                  const { title, artist, album, picture } = tag.tags;
-                  setAppState(prev => {
-                      let newCoverUrl = prev.coverUrl;
-                      if (picture) {
-                          if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
-                          const { data, format } = picture;
-                          const blob = new Blob([new Uint8Array(data)], { type: format });
-                          newCoverUrl = URL.createObjectURL(blob);
-                          extractDominantColor(newCoverUrl).then(color => setAppState(c => ({ ...c, themeColor: color })));
-                      }
-                      return { ...prev, metadata: { ...prev.metadata, title: title || prev.metadata.title, artist: artist || prev.metadata.artist, album: album || prev.metadata.album }, coverUrl: newCoverUrl };
-                  });
+        (window as any).jsmediatags.read(file, {
+          onSuccess: (tag: any) => {
+            const { title, artist, album, picture } = tag.tags;
+            setAppState(prev => {
+              const shouldUseEmbeddedCover = allowEmbeddedCover && !prev.coverFile && !!picture;
+              let nextCoverUrl = prev.coverUrl;
+
+              if (shouldUseEmbeddedCover) {
+                if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
+                const { data, format } = picture;
+                const blob = new Blob([new Uint8Array(data)], { type: format });
+                nextCoverUrl = URL.createObjectURL(blob);
+                updateThemeColorFromUrl(nextCoverUrl);
               }
-          });
+
+              return {
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  title: title || prev.metadata.title,
+                  artist: artist || prev.metadata.artist,
+                  album: album || prev.metadata.album
+                },
+                coverUrl: shouldUseEmbeddedCover ? nextCoverUrl : prev.coverUrl
+              };
+            });
+          },
+          onError: () => undefined
+        });
       }
     } else if (type === 'cover') {
-      if (appState.coverUrl) URL.revokeObjectURL(appState.coverUrl);
+      const url = URL.createObjectURL(file);
+      if (currentState.coverUrl) URL.revokeObjectURL(currentState.coverUrl);
       setAppState(prev => ({ ...prev, coverFile: file, coverUrl: url, coverImageX: 0, coverImageY: 0 }));
-      if (url) extractDominantColor(url).then(color => setAppState(prev => ({ ...prev, themeColor: color })));
+      updateThemeColorFromUrl(url);
     } else if (type === 'background') {
-      if (appState.backgroundImageUrl) URL.revokeObjectURL(appState.backgroundImageUrl);
+      const url = URL.createObjectURL(file);
+      if (currentState.backgroundImageUrl) URL.revokeObjectURL(currentState.backgroundImageUrl);
       setAppState(prev => ({ ...prev, backgroundImageFile: file, backgroundImageUrl: url }));
-    }
-    else if (type === 'srt') {
-      const reader = new FileReader();
-      reader.onload = (e) => setAppState(prev => ({ ...prev, srtFile: file, lyrics: parseSRT(e.target?.result as string) }));
-      reader.readAsText(file);
+    } else if (type === 'srt') {
+      const content = await file.text();
+      setAppState(prev => ({ ...prev, srtFile: file, lyrics: parseSRT(content) }));
     } else if (type === 'singerSrt') {
-      const reader = new FileReader();
-      reader.onload = (e) => setAppState(prev => ({ ...prev, singerSrtFile: file, singerLyrics: parseSingerSRT(e.target?.result as string) }));
-      reader.readAsText(file);
+      const content = await file.text();
+      setAppState(prev => ({ ...prev, singerSrtFile: file, singerLyrics: parseSingerSRT(content) }));
     }
-  };
+
+    if (persist) {
+      void savePersistedAsset(type, file).catch((error) => {
+        console.warn(`Failed to persist ${type} asset.`, error);
+      });
+    }
+  }, [updateThemeColorFromUrl]);
+
+  const handleFileChange = useCallback((type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt', file: File) => {
+    if (type === 'customParticle') return;
+    void applyAssetFile(type, file).catch((error) => {
+      console.warn(`Failed to apply ${type} file.`, error);
+    });
+  }, [applyAssetFile]);
 
   const handleFileRemove = useCallback((type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => {
+    if (type !== 'customParticle') {
+      void removePersistedAsset(type).catch((error) => {
+        console.warn(`Failed to remove persisted ${type} asset.`, error);
+      });
+    }
+
     setAppState(prev => {
       const nextState = { ...prev };
 
@@ -209,6 +266,55 @@ const App: React.FC = () => {
       return nextState;
     });
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreAssets = async () => {
+      setIsRestoringAssets(true);
+      try {
+        const restoredEntries = await Promise.all(
+          PERSISTED_ASSET_TYPES.map(async (type) => {
+            try {
+              return [type, await loadPersistedAsset(type)] as const;
+            } catch (error) {
+              console.warn(`Failed to load persisted ${type} asset.`, error);
+              return [type, null] as const;
+            }
+          })
+        );
+
+        if (cancelled) return;
+
+        const restoredAssets = Object.fromEntries(restoredEntries) as Record<PersistedAssetType, File | null>;
+        const hasPersistedCover = !!restoredAssets.cover;
+        const restoreOrder: PersistedAssetType[] = ['audio', 'cover', 'background', 'srt', 'singerSrt'];
+
+        for (const type of restoreOrder) {
+          const file = restoredAssets[type];
+          if (!file || cancelled) continue;
+
+          try {
+            await applyAssetFile(type, file, {
+              persist: false,
+              allowEmbeddedCover: type === 'audio' ? !hasPersistedCover : true,
+            });
+          } catch (error) {
+            console.warn(`Failed to restore ${type} asset.`, error);
+            await removePersistedAsset(type).catch(() => undefined);
+          }
+        }
+      } finally {
+        if (!cancelled) setIsRestoringAssets(false);
+      }
+    };
+
+    void restoreAssets();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyAssetFile]);
 
   useEffect(() => () => {
     if (appState.audioUrl) URL.revokeObjectURL(appState.audioUrl);
@@ -337,6 +443,7 @@ const App: React.FC = () => {
 
         <ConfigPanel 
           isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} appState={appState}
+          isRestoringAssets={isRestoringAssets}
           onFileChange={handleFileChange} onFileRemove={handleFileRemove}
           onMetadataChange={(k, v) => setAppState(prev => ({...prev, metadata: {...prev.metadata, [k]: v}}))}
           onThemeChange={(c) => setAppState(prev => ({...prev, themeColor: c}))}

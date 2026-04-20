@@ -20,6 +20,7 @@ interface ConfigPanelProps {
   isOpen: boolean;
   onClose: () => void;
   appState: AppState;
+  isRestoringAssets: boolean;
   onFileChange: (type: any, file: File) => void;
   onFileRemove: (type: any) => void;
   onMetadataChange: (key: keyof Metadata, value: string) => void;
@@ -73,7 +74,7 @@ interface ConfigPanelProps {
 }
 
 const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
-  const { isOpen, onClose, appState, onLanguageChange } = props;
+  const { isOpen, onClose, appState, onLanguageChange, isRestoringAssets } = props;
   const [activeSection, setActiveSection] = useState('presets');
   const [isDetached, setIsDetached] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -279,7 +280,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
               <ConfigLyrics appState={appState} onLyricLineConfigChange={props.onLyricLineConfigChange} onLyricSizeChange={props.onLyricSizeChange} onLyricBoldChange={props.onLyricBoldChange} onLyricColorChange={props.onLyricColorChange} onLyricShadowChange={props.onLyricShadowChange} onLyricOffsetChange={props.onLyricOffsetChange} onLyricGapToleranceChange={props.onLyricGapToleranceChange} translations={t} />
               <ConfigDetails appState={appState} onMetadataChange={props.onMetadataChange} translations={t} />
               <ConfigTypography appState={appState} onTrackTypographyChange={props.onTrackTypographyChange} translations={t} />
-              <ConfigAssets appState={appState} onFileChange={props.onFileChange} onFileRemove={props.onFileRemove} onCoverConfigChange={props.onCoverConfigChange} onBackgroundConfigChange={props.onBackgroundConfigChange} translations={t} />
+              <ConfigAssets appState={appState} isRestoringAssets={isRestoringAssets} onFileChange={props.onFileChange} onFileRemove={props.onFileRemove} onCoverConfigChange={props.onCoverConfigChange} onBackgroundConfigChange={props.onBackgroundConfigChange} translations={t} />
               <div className="h-20"></div>
             </div>
           </div>

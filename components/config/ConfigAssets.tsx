@@ -6,6 +6,7 @@ import { getThemeClasses } from '../../utils/themeStyles';
 
 interface ConfigAssetsProps {
     appState: AppState;
+    isRestoringAssets: boolean;
     onFileChange: (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt', file: File) => void;
     onFileRemove: (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => void;
     onCoverConfigChange: (key: 'x' | 'y', value: number) => void;
@@ -14,7 +15,7 @@ interface ConfigAssetsProps {
 }
 
 const ConfigAssets: React.FC<ConfigAssetsProps> = ({ 
-    appState, onFileChange, onFileRemove, onCoverConfigChange, onBackgroundConfigChange, translations: t 
+    appState, isRestoringAssets, onFileChange, onFileRemove, onCoverConfigChange, onBackgroundConfigChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
     
@@ -48,6 +49,12 @@ const ConfigAssets: React.FC<ConfigAssetsProps> = ({
             <h3 className={`text-xs font-sans font-bold ${themeClasses.textMuted} uppercase tracking-widest flex items-center gap-2`}>
                 <MdLibraryMusic className="text-lg" /> {t.assets}
             </h3>
+
+            {isRestoringAssets && (
+                <div className={`rounded-lg border ${themeClasses.border} ${themeClasses.itemBg} px-3 py-2 text-[10px] uppercase tracking-wider ${themeClasses.textMuted}`}>
+                    {t.restoringAssets}
+                </div>
+            )}
             
             {[
                 { id: 'audio', label: t.audioTrack, icon: MdMusicNote, file: appState.audioFile, color: 'text-blue-400' },
