@@ -15,6 +15,7 @@ interface ConfigVisualsProps {
     onParticleBaseSpeedChange: (speed: number) => void;
     onParticleDensityChange: (density: number) => void;
     onClimaxDensitySensitivityChange: (sensitivity: number) => void;
+    onClimaxDensityBoostStrengthChange: (strength: number) => void;
     onParticleTypeChange: (type: ParticleType) => void;
     onParticleDirectionChange: (direction: ParticleDirection) => void;
     onParticleColorChange: (color: string, useTheme: boolean) => void;
@@ -49,6 +50,7 @@ const ConfigVisuals: React.FC<ConfigVisualsProps> = (props) => {
                     onParticleBaseSpeedChange={props.onParticleBaseSpeedChange}
                     onParticleDensityChange={props.onParticleDensityChange}
                     onClimaxDensitySensitivityChange={props.onClimaxDensitySensitivityChange}
+                    onClimaxDensityBoostStrengthChange={props.onClimaxDensityBoostStrengthChange}
                     onParticleTypeChange={props.onParticleTypeChange}
                     onParticleDirectionChange={props.onParticleDirectionChange}
                     onParticleColorChange={props.onParticleColorChange}

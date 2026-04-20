@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MdSpeed, MdGraphicEq, MdFormatSize, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdCircle, MdLocalFlorist, MdAcUnit, MdStar, MdSpa, MdClose, MdAdd, MdDelete } from 'react-icons/md';
+import { MdSpeed, MdGraphicEq, MdFormatSize, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdClose, MdAdd, MdDelete } from 'react-icons/md';
 import { AppState, ParticleType, ParticleDirection } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
@@ -11,6 +11,7 @@ interface ParticleControlsProps {
     onParticleBaseSpeedChange: (speed: number) => void;
     onParticleDensityChange: (density: number) => void;
     onClimaxDensitySensitivityChange: (sensitivity: number) => void;
+    onClimaxDensityBoostStrengthChange: (strength: number) => void;
     onParticleTypeChange: (type: ParticleType) => void;
     onParticleDirectionChange: (direction: ParticleDirection) => void;
     onParticleColorChange: (color: string, useTheme: boolean) => void;
@@ -20,18 +21,133 @@ interface ParticleControlsProps {
 
 const ParticleControls: React.FC<ParticleControlsProps> = ({ 
     appState, onVisualizerChange, onParticleSizeChange, 
-    onParticleBaseSpeedChange, onParticleDensityChange, onClimaxDensitySensitivityChange, onParticleTypeChange, onParticleDirectionChange,
+    onParticleBaseSpeedChange, onParticleDensityChange, onClimaxDensitySensitivityChange, onClimaxDensityBoostStrengthChange, onParticleTypeChange, onParticleDirectionChange,
     onParticleColorChange, onParticlePalettesChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
+
+    const ParticleShapePreview: React.FC<{ type: ParticleType; active: boolean }> = ({ type, active }) => {
+        const stroke = 'currentColor';
+        const softFill = active ? 'currentColor' : 'currentColor';
+
+        if (type === 'circle') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    <circle cx="12" cy="12" r="5.5" fill={softFill} fillOpacity={active ? 0.95 : 0.18} stroke={stroke} strokeWidth="1.4" />
+                </svg>
+            );
+        }
+
+        if (type === 'snowflake') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true" fill="none" stroke={stroke} strokeWidth="1.45" strokeLinecap="round">
+                    <path d="M12 4v16M5.4 8l13.2 8M18.6 8L5.4 16" />
+                    <path d="M12 4l-1.8 2.1M12 4l1.8 2.1M12 20l-1.8-2.1M12 20l1.8-2.1" />
+                    <path d="M5.4 8l2.7.2M5.4 8l1.1 2.4M18.6 8l-2.7.2M18.6 8l-1.1 2.4" />
+                    <path d="M5.4 16l2.7-.2M5.4 16l1.1-2.4M18.6 16l-2.7-.2M18.6 16l-1.1-2.4" />
+                </svg>
+            );
+        }
+
+        if (type === 'star') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    <path d="M12 3.7l2.24 4.65 5.14.75-3.72 3.63.88 5.13L12 15.5l-4.54 2.38.88-5.13L4.62 9.1l5.14-.75L12 3.7z" fill={softFill} fillOpacity={active ? 0.94 : 0.16} stroke={stroke} strokeWidth="1.2" strokeLinejoin="round" />
+                </svg>
+            );
+        }
+
+        if (type === 'sakura') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    <path d="M12 5.2c1.3 0 2.5 1 2.8 2.3 1-.9 2.4-.9 3.3-.1 1 .8 1.2 2.3.6 3.5 1.3.2 2.3 1.2 2.3 2.5 0 1.4-1.1 2.5-2.5 2.5-.4 0-.8-.1-1.2-.3-.1 1.4-1.3 2.5-2.7 2.5-1 0-1.9-.6-2.4-1.4-.5.9-1.4 1.4-2.4 1.4-1.4 0-2.6-1.1-2.7-2.5-.4.2-.8.3-1.2.3-1.4 0-2.5-1.1-2.5-2.5 0-1.3 1-2.3 2.3-2.5-.6-1.2-.3-2.7.6-3.5 1-.8 2.4-.8 3.3.1.3-1.3 1.5-2.3 2.8-2.3z" fill={softFill} fillOpacity={active ? 0.88 : 0.12} stroke={stroke} strokeWidth="1.1" />
+                    <circle cx="12" cy="12.4" r="1.2" fill={stroke} fillOpacity={active ? 1 : 0.35} />
+                </svg>
+            );
+        }
+
+        if (type === 'lily') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    <path d="M12 4.2c1.6 0 2 4.1 0 5.4-2-1.3-1.6-5.4 0-5.4zm-5 2.7c1.2-.5 3.4 2.9 2.5 4.8-2.2.5-4.2-2.2-2.5-4.8zm10 0c1.7 2.6-.3 5.3-2.5 4.8-.9-1.9 1.3-5.3 2.5-4.8zm-8.3 6.1c1.7-.2 3.1 2.6 2.4 4.4-2 .6-4.1-1.2-4-3.3.3-.6.8-.9 1.6-1.1zm6.6 0c.8.1 1.3.5 1.6 1.1.1 2.1-2 3.9-4 3.3-.7-1.8.7-4.6 2.4-4.4z" fill={softFill} fillOpacity={active ? 0.82 : 0.1} stroke={stroke} strokeWidth="1.05" />
+                    <path d="M12 12.4v5.1M10.4 12.8l1.6 2.2 1.6-2.2" fill="none" stroke={stroke} strokeWidth="1.05" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            );
+        }
+
+        if (type === 'dandelion') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true" fill="none" stroke={stroke} strokeWidth="1.05" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 8.3v7.2" />
+                    <path d="M12 8.3L8.7 4.8M12 8.3L10.3 4M12 8.3V3.4M12 8.3l1.7-4.3M12 8.3l3.3-3.5" />
+                    <circle cx="8.2" cy="4.3" r="0.72" fill={softFill} fillOpacity={active ? 0.92 : 0.16} stroke="none" />
+                    <circle cx="10.1" cy="3.5" r="0.68" fill={softFill} fillOpacity={active ? 0.92 : 0.16} stroke="none" />
+                    <circle cx="12" cy="3" r="0.68" fill={softFill} fillOpacity={active ? 0.92 : 0.16} stroke="none" />
+                    <circle cx="13.9" cy="3.5" r="0.68" fill={softFill} fillOpacity={active ? 0.92 : 0.16} stroke="none" />
+                    <circle cx="15.8" cy="4.3" r="0.72" fill={softFill} fillOpacity={active ? 0.92 : 0.16} stroke="none" />
+                    <ellipse cx="12" cy="17.8" rx="1" ry="1.95" fill={softFill} fillOpacity={active ? 0.92 : 0.16} stroke="none" />
+                </svg>
+            );
+        }
+
+        if (type === 'peach') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    <path d="M12 5.1c1.7 0 2.6 1.4 2.7 2.7 1.2-.8 2.8-.8 3.8.2 1 .9 1.2 2.4.5 3.7 1.2.2 2.1 1.2 2.1 2.5 0 1.7-1.3 2.9-3 2.9-.6 0-1.1-.2-1.6-.4-.1 1.6-1.3 2.8-2.8 2.8-.8 0-1.5-.3-1.9-.8-.4.5-1.1.8-1.9.8-1.5 0-2.7-1.2-2.8-2.8-.5.3-1 .4-1.6.4-1.7 0-3-1.2-3-2.9 0-1.3.9-2.3 2.1-2.5-.7-1.3-.5-2.8.5-3.7 1-.9 2.6-1 3.8-.2.1-1.4 1-2.7 2.7-2.7z" fill={softFill} fillOpacity={active ? 0.9 : 0.12} stroke={stroke} strokeWidth="1.08" />
+                    <circle cx="12" cy="12.2" r="1" fill={stroke} fillOpacity={active ? 1 : 0.35} />
+                </svg>
+            );
+        }
+
+        if (type === 'chrysanthemum') {
+            const petals = Array.from({ length: 12 }, (_, idx) => idx);
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    {petals.map((petal) => (
+                        <path
+                            key={petal}
+                            d="M12 12c.85-1.55.95-3.65 0-6.15-.95 2.5-.85 4.6 0 6.15z"
+                            transform={`rotate(${petal * 30} 12 12)`}
+                            fill={softFill}
+                            fillOpacity={active ? 0.84 : 0.12}
+                            stroke={stroke}
+                            strokeWidth="0.52"
+                            strokeLinejoin="round"
+                        />
+                    ))}
+                    <circle cx="12" cy="12" r="2.05" fill={stroke} fillOpacity={active ? 0.9 : 0.2} />
+                </svg>
+            );
+        }
+
+        if (type === 'begonia') {
+            return (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                    <path d="M12 6.2c1.8 0 3 1.2 3 3.1 0 .6-.1 1-.4 1.5 1.7-.2 3.3.7 3.8 2.4-.5 2-2.2 3.2-4.2 2.9-.6-.1-1.1-.3-1.5-.5-.5 1.8-1.9 3-3.8 3-2 0-3.5-1.4-3.7-3.4.1-1.9 1.4-3.3 3.2-3.6-.3-.4-.5-.9-.5-1.4 0-1.9 1.5-4 4.1-4z" fill={softFill} fillOpacity={active ? 0.88 : 0.12} stroke={stroke} strokeWidth="1.08" />
+                    <circle cx="12.1" cy="12.1" r="1.05" fill={stroke} fillOpacity={active ? 1 : 0.35} />
+                </svg>
+            );
+        }
+
+        return (
+            <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                <path d="M12 5.1c1.8 0 2.9 1.6 2.9 3 0 .5-.1.9-.4 1.4 1.6.2 2.8 1.4 2.8 3.1 0 2-1.6 3.3-3.5 3.3-.8 0-1.4-.2-1.8-.4-.4.2-1 .4-1.8.4-1.9 0-3.5-1.3-3.5-3.3 0-1.7 1.2-2.9 2.8-3.1-.2-.5-.4-.9-.4-1.4 0-1.4 1.1-3 2.9-3z" fill={softFill} fillOpacity={active ? 0.86 : 0.12} stroke={stroke} strokeWidth="1.05" />
+                <path d="M12 8.6c1.3.5 2.1 1.6 2.1 2.8 0 1.4-.9 2.4-2.1 3-1.2-.6-2.1-1.6-2.1-3 0-1.2.8-2.3 2.1-2.8z" fill="none" stroke={stroke} strokeWidth="1.05" />
+            </svg>
+        );
+    };
     
-    const particleTypes: { id: ParticleType; label: string; icon: any }[] = [
-        { id: 'circle', label: t.pTypeDot, icon: MdCircle },
-        { id: 'sakura', label: t.pTypeSakura, icon: MdLocalFlorist },
-        { id: 'lily', label: t.pTypeLily, icon: MdLocalFlorist },
-        { id: 'rose', label: t.pTypeRose, icon: MdSpa },
-        { id: 'snowflake', label: t.pTypeSnow, icon: MdAcUnit },
-        { id: 'star', label: t.pTypeStar, icon: MdStar },
+    const particleTypes: { id: ParticleType; label: string }[] = [
+        { id: 'circle', label: t.pTypeDot },
+        { id: 'sakura', label: t.pTypeSakura },
+        { id: 'lily', label: t.pTypeLily },
+        { id: 'rose', label: t.pTypeRose },
+        { id: 'snowflake', label: t.pTypeSnow },
+        { id: 'star', label: t.pTypeStar },
+        { id: 'dandelion', label: t.pTypeDandelion },
+        { id: 'peach', label: t.pTypePeach },
+        { id: 'chrysanthemum', label: t.pTypeChrysanthemum },
+        { id: 'begonia', label: t.pTypeBegonia },
     ];
 
     const presetAngles = [
@@ -112,17 +228,30 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
                     </label>
 
                     {appState.enableParticleClimaxDensityBoost && (
-                        <div>
-                            <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
-                                <span className="flex items-center gap-1"><MdGraphicEq size={14} className="opacity-70"/> {t.climaxSensitivity}</span>
-                                <span className={`font-mono ${themeClasses.textMuted}`}>{appState.climaxDensitySensitivity.toFixed(1)}x</span>
+                        <>
+                            <div>
+                                <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                                    <span className="flex items-center gap-1"><MdGraphicEq size={14} className="opacity-70"/> {t.climaxSensitivity}</span>
+                                    <span className={`font-mono ${themeClasses.textMuted}`}>{appState.climaxDensitySensitivity.toFixed(1)}x</span>
+                                </div>
+                                <input
+                                    type="range" min="0.3" max="4.5" step="0.1" value={appState.climaxDensitySensitivity}
+                                    onChange={(e) => onClimaxDensitySensitivityChange(Number(e.target.value))}
+                                    className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                />
                             </div>
-                            <input
-                                type="range" min="0.3" max="3.0" step="0.1" value={appState.climaxDensitySensitivity}
-                                onChange={(e) => onClimaxDensitySensitivityChange(Number(e.target.value))}
-                                className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
-                            />
-                        </div>
+                            <div>
+                                <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                                    <span className="flex items-center gap-1"><MdSpeed size={14} className="opacity-70"/> {t.climaxBoostStrength}</span>
+                                    <span className={`font-mono ${themeClasses.textMuted}`}>{appState.climaxDensityBoostStrength.toFixed(1)}x</span>
+                                </div>
+                                <input
+                                    type="range" min="0.5" max="3.0" step="0.1" value={appState.climaxDensityBoostStrength}
+                                    onChange={(e) => onClimaxDensityBoostStrengthChange(Number(e.target.value))}
+                                    className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                                />
+                            </div>
+                        </>
                     )}
                     <div>
                         <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
@@ -167,14 +296,15 @@ const ParticleControls: React.FC<ParticleControlsProps> = ({
                                 <button
                                     key={pt.id}
                                     onClick={() => onParticleTypeChange(pt.id)}
-                                    className={`py-1.5 rounded border transition-all flex items-center justify-center gap-1 ${
+                                    className={`py-2 rounded border transition-all flex flex-col items-center justify-center gap-1 ${
                                         appState.particleType === pt.id 
                                             ? `${themeClasses.itemActive} ${themeClasses.borderActive} ${themeClasses.textMain}` 
                                             : `${themeClasses.itemBg} border-transparent ${themeClasses.textMuted} hover:${themeClasses.itemHover}`
                                     }`}
                                     title={pt.label}
                                 >
-                                    <pt.icon size={14} />
+                                    <ParticleShapePreview type={pt.id} active={appState.particleType === pt.id} />
+                                    <span className="text-[10px] leading-none">{pt.label}</span>
                                 </button>
                             ))}
                         </div>

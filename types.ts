@@ -28,7 +28,17 @@ export interface Metadata {
 }
 
 export type VinylStyle = 'classic' | 'vintage' | 'modern' | 'neon';
-export type ParticleType = 'circle' | 'sakura' | 'snowflake' | 'star' | 'lily' | 'rose';
+export type ParticleType =
+  | 'circle'
+  | 'sakura'
+  | 'snowflake'
+  | 'star'
+  | 'lily'
+  | 'rose'
+  | 'dandelion'
+  | 'peach'
+  | 'chrysanthemum'
+  | 'begonia';
 export type ParticleDirection = number;
 export type ThemeMode = 'dark' | 'light' | 'colorful';
 export type CoverArtStyle = 'vinyl' | '3d-card';
@@ -162,6 +172,7 @@ export interface AppState {
   particleBaseSpeed: number; 
   baseParticleDensity: number;
   climaxDensitySensitivity: number;
+  climaxDensityBoostStrength: number;
   contentMaxWidth: number; 
   albumColumnWidth: number; 
   lyricsColumnWidth: number; 

@@ -269,8 +269,8 @@ const App: React.FC = () => {
       <BackgroundLayer appState={{...appState, colorfulColors: derivedColors}} />
       
       <GlobalParticles
-        analyser={analyser} isPlaying={isPlaying} themeColor={appState.themeColor} colorfulColors={derivedColors}
-        enabled={appState.enableParticles} enableClimaxDensityBoost={appState.enableParticleClimaxDensityBoost} climaxDensitySensitivity={appState.climaxDensitySensitivity}
+        analyser={analyser} isPlaying={isPlaying} currentTime={currentTime} themeColor={appState.themeColor} colorfulColors={derivedColors}
+        enabled={appState.enableParticles} enableClimaxDensityBoost={appState.enableParticleClimaxDensityBoost} climaxDensitySensitivity={appState.climaxDensitySensitivity} climaxDensityBoostStrength={appState.climaxDensityBoostStrength}
         particleSize={appState.particleSize} particleBaseSpeed={appState.particleBaseSpeed} baseParticleDensity={appState.baseParticleDensity} particleType={appState.particleType}
         particleDirection={appState.particleDirection} particlePalettes={appState.particlePalettes} useThemeColor={appState.useThemeColorForParticles}
         themeMode={appState.themeMode}
@@ -358,6 +358,7 @@ const App: React.FC = () => {
           onParticleBaseSpeedChange={(s) => setAppState(prev => ({...prev, particleBaseSpeed: s}))}
           onParticleDensityChange={(d) => setAppState(prev => ({...prev, baseParticleDensity: d}))}
           onClimaxDensitySensitivityChange={(s) => setAppState(prev => ({...prev, climaxDensitySensitivity: s}))}
+          onClimaxDensityBoostStrengthChange={(s) => setAppState(prev => ({...prev, climaxDensityBoostStrength: s}))}
           onLayoutChange={(w) => setAppState(prev => ({...prev, contentMaxWidth: w}))}
           onLayoutDimensionChange={(k, v) => setAppState(prev => ({...prev, [k === 'total' ? 'contentMaxWidth' : k === 'album' ? 'albumColumnWidth' : k === 'lyrics' ? 'lyricsColumnWidth' : k === 'gap' ? 'columnGapWidth' : k === 'albumX' ? 'albumColumnX' : k === 'albumY' ? 'albumColumnY' : k === 'infoGap' ? 'albumInfoGap' : k === 'lyricsX' ? 'lyricsColumnX' : 'lyricsColumnY']: v}))}
           onPlayerOpacityChange={(v) => setAppState(prev => ({...prev, playerControlsOpacity: v}))}
