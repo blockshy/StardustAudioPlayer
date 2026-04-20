@@ -68,6 +68,8 @@ interface ConfigPanelProps {
   onApplyPreset: (preset: AppPreset) => void;
   onSavePreset: (name: string, idToOverwrite?: string) => void;
   onDeletePreset: (id: string) => void;
+  onExportPresets: () => { count: number; fileName: string } | Promise<{ count: number; fileName: string }>;
+  onImportPresets: (file: File) => Promise<any>;
   onLanguageChange: (lang: Language) => void;
   onSingerInfoConfigChange: (key: string, value: any) => void;
   onSingerThemeGroupsChange: (groups: SingerThemeGroup[]) => void;
@@ -274,7 +276,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
           </div>
           <div ref={contentRef} className="h-full overflow-y-auto config-panel-scroll p-6 md:p-8 scroll-smooth">
             <div className="space-y-12" style={{ paddingLeft: `${contentLeftPadding}px` }}>
-              <ConfigPresets appState={appState} presets={props.presets} onApplyPreset={props.onApplyPreset} onSavePreset={props.onSavePreset} onDeletePreset={props.onDeletePreset} translations={t} />
+              <ConfigPresets appState={appState} presets={props.presets} onApplyPreset={props.onApplyPreset} onSavePreset={props.onSavePreset} onDeletePreset={props.onDeletePreset} onExportPresets={props.onExportPresets} onImportPresets={props.onImportPresets} translations={t} />
               <ConfigAppearance appState={appState} onThemeModeChange={props.onThemeModeChange} onColorfulColorsChange={props.onColorfulColorsChange} onThemeChange={props.onThemeChange} onColorfulBaseChange={props.onColorfulBaseChange} onSingerThemeGroupsChange={props.onSingerThemeGroupsChange} onForceOverrideChange={props.onForceOverrideChange} translations={t} />
               <ConfigCover appState={appState} onCoverArtStyleChange={props.onCoverArtStyleChange} onAlbumProgressConfigChange={props.onAlbumProgressConfigChange} onVinylScaleChange={props.onVinylScaleChange} onVinylStyleChange={props.onVinylStyleChange} onVinylRotationSpeedChange={props.onVinylRotationSpeedChange} onVinylLabelSizeChange={props.onVinylLabelSizeChange} onVinylCenterDotChange={props.onVinylCenterDotChange} onSensitivityChange={props.onSensitivityChange} translations={t} />
               <ConfigVisuals appState={appState} onSensitivityChange={props.onSensitivityChange} onWaveBarConfigChange={props.onWaveBarConfigChange} onVisualizerChange={props.onVisualizerChange} onParticleSizeChange={props.onParticleSizeChange} onParticleBaseSpeedChange={props.onParticleBaseSpeedChange} onParticleDensityChange={props.onParticleDensityChange} onClimaxDensitySensitivityChange={props.onClimaxDensitySensitivityChange} onClimaxDensityBoostStrengthChange={props.onClimaxDensityBoostStrengthChange} onParticleTypeChange={props.onParticleTypeChange} onParticleDirectionChange={props.onParticleDirectionChange} onParticleColorChange={props.onParticleColorChange} onParticlePalettesChange={props.onParticlePalettesChange} translations={t} />

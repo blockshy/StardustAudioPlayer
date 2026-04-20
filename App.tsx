@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, Language, ParticleDirection, LyricEffect, SingerInfoLine } from './types';
+import { AppState, AppPreset } from './types';
 import { parseSRT, parseSingerSRT } from './utils/srtParser';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import AlbumArt from './components/AlbumArt';
@@ -14,6 +14,7 @@ import TopHeader from './components/TopHeader';
 import TrackInfo from './components/TrackInfo';
 import PlayerControlBar from './components/PlayerControlBar';
 import { loadPersistedAsset, PersistedAssetType, PERSISTED_ASSET_TYPES, removePersistedAsset, savePersistedAsset } from './utils/persistedAssets';
+import { buildPresetTransferPayload, mergeImportedPresets, parsePresetTransferPayload } from './utils/presetTransfer';
 
 const revokeObjectUrl = (url: string | null | undefined) => {
   if (url?.startsWith('blob:')) {
@@ -363,6 +364,53 @@ const App: React.FC = () => {
       else setCustomPresets(prev => [...prev, { id: `custom_${Date.now()}`, name, config: persistableConfig }]);
   }, [appState]);
 
+  const handleExportPresets = useCallback(() => {
+    if (customPresets.length === 0) {
+      throw new Error('no_custom_presets');
+    }
+
+    const payload = buildPresetTransferPayload(customPresets, CONFIG_KEYS);
+    const fileName = `stardust-audio-player-presets-${payload.exportedAt.replace(/[:.]/g, '-').replace('T', '_').replace('Z', '')}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    return {
+      count: payload.presets.length,
+      fileName,
+    };
+  }, [customPresets]);
+
+  const handleImportPresets = useCallback(async (file: File) => {
+    const raw = await file.text();
+    const importedPresets = parsePresetTransferPayload(raw, CONFIG_KEYS);
+    const importedSuffix = appState.language === 'zh' ? '（导入）' : ' (Imported)';
+    const defaultPresetNames = DEFAULT_PRESETS.map((preset) => preset.name);
+    let nextSummary: ReturnType<typeof mergeImportedPresets>['summary'] | null = null;
+
+    setCustomPresets((prev) => {
+      const merged = mergeImportedPresets(prev, importedPresets, {
+        defaultPresetNames,
+        importedSuffix,
+      });
+      nextSummary = merged.summary;
+      return merged.presets;
+    });
+
+    if (!nextSummary) {
+      throw new Error('preset_import_failed');
+    }
+
+    return nextSummary;
+  }, [appState.language]);
+
   const isLightMode = appState.themeMode === 'light' || (appState.themeMode === 'colorful' && appState.colorfulThemeBase === 'light');
   const defaultLyricShadowColor = appState.themeMode === 'dark' ? '#ffffff' : '#000000';
 
@@ -376,7 +424,6 @@ const App: React.FC = () => {
     const isGradient = colors.length > 1;
     const isVertical = appState.singerInfoOrientation === 'vertical';
     
-    // Adjust gradient direction based on orientation
     const textGradDir = isVertical ? 'to bottom' : 'to right';
 
     return {
@@ -543,6 +590,8 @@ const App: React.FC = () => {
           onApplyPreset={(p) => setAppState(prev => ({...prev, ...p.config}))}
           onSavePreset={handleSavePreset}
           onDeletePreset={(id) => setCustomPresets(prev => prev.filter(p => p.id !== id))}
+          onExportPresets={handleExportPresets}
+          onImportPresets={handleImportPresets}
           onLanguageChange={(l) => setAppState(prev => ({...prev, language: l}))}
 
           // Singer Info Event Handlers

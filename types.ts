@@ -212,8 +212,6 @@ export interface AppState {
   showVinylCenterDot: boolean;
   vinylScale: number; 
   vinylRotationSpeed: number; 
-  
-  enableWaterReflection: boolean;
   lyricEffect: 'none' | 'glow' | 'neon' | 'gradient' | 'retro' | 'fluid' | 'metal' | 'ink' | 'glitch' | 'particles';
 
 }

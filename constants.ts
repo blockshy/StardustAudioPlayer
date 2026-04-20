@@ -178,8 +178,6 @@ export const DEFAULT_STATE: AppState = {
     showVinylCenterDot: true,
     vinylScale: 1.0,
     vinylRotationSpeed: 1.0,
-
-    enableWaterReflection: false,
     lyricEffect: 'glow',
 
 };
@@ -266,7 +264,7 @@ export const CONFIG_KEYS: (keyof AppState)[] = [
     'vinylStyle', 'vinylLabelSize', 'showVinylCenterDot', 'vinylScale', 'vinylRotationSpeed',
     'coverImageX', 'coverImageY',
     'backgroundImageScale', 'backgroundImageX', 'backgroundImageY',
-    'enableWaterReflection', 'lyricEffect',
+    'lyricEffect',
     'singerInfoFontSize', 'singerInfoOrientation', 'singerInfoX', 'singerInfoY', 'singerThemeGroups', 'showSingerInfo', 'forceOverrideSingerTheme',
     'singerLyricOffset', 'singerLyricGapTolerance', 'configSidebarWidth', 'configContentLeftPadding'
 ];
