@@ -214,9 +214,13 @@ export interface AppState {
 
 export interface AudioContextState {
   isPlaying: boolean;
+  isReady: boolean;
+  isBuffering: boolean;
   currentTime: number;
   duration: number;
   volume: number;
+  muted: boolean;
+  error: string | null;
   analyser: AnalyserNode | null;
 }
 

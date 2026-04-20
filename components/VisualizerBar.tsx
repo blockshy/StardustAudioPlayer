@@ -8,7 +8,6 @@ interface VisualizerBarProps {
   isPlaying: boolean;
   themeColor: string;
   enableWaves: boolean;
-  enableParticles: boolean; 
   themeMode: ThemeMode;
   colorfulThemeBase?: 'light' | 'dark';
   sensitivity: number;
@@ -76,9 +75,9 @@ const VisualizerBar: React.FC<VisualizerBarProps> = ({
              sum += amplitude * amplitude;
          }
          rms = Math.sqrt(sum / timeDomainData.length);
-      } else rms = 0.005;
+      } else rms = 0;
 
-      const targetVolume = Math.max(rms * sensitivity, 0.02);
+      const targetVolume = isPlaying ? Math.max(rms * sensitivity, 0.015) : 0;
       smoothedVolumeRef.current += (targetVolume - smoothedVolumeRef.current) * 0.1;
       const volume = smoothedVolumeRef.current;
       phaseRef.current += 0.02 + (volume * 0.05);

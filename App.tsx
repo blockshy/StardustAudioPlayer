@@ -44,7 +44,21 @@ const App: React.FC = () => {
   const [isRestoringAssets, setIsRestoringAssets] = useState(false);
   const appStateRef = useRef(appState);
 
-  const { isPlaying, currentTime, duration, volume, analyser, togglePlay, seek, setVolume } = useAudioPlayer(appState.audioUrl);
+  const {
+    isPlaying,
+    isReady,
+    isBuffering,
+    currentTime,
+    duration,
+    volume,
+    muted,
+    error: audioError,
+    analyser,
+    togglePlay,
+    seek,
+    setVolume,
+    toggleMute
+  } = useAudioPlayer(appState.audioUrl);
 
   useEffect(() => {
     appStateRef.current = appState;
@@ -439,7 +453,26 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        <PlayerControlBar appState={{...appState, themeColor: activeThemeColor, colorfulColors: derivedColors}} isPlaying={isPlaying} currentTime={currentTime} duration={duration} volume={volume} analyser={analyser} togglePlay={togglePlay} skipBackward={() => seek(Math.max(0, currentTime - 10))} skipForward={() => seek(Math.min(duration, currentTime + 10))} setVolume={setVolume} seek={seek} singerOverrideColors={currentSingerColors} />
+        <PlayerControlBar
+          appState={{...appState, themeColor: activeThemeColor, colorfulColors: derivedColors}}
+          hasAudio={!!appState.audioUrl}
+          isPlaying={isPlaying}
+          isReady={isReady}
+          isBuffering={isBuffering}
+          audioError={audioError}
+          currentTime={currentTime}
+          duration={duration}
+          volume={volume}
+          muted={muted}
+          analyser={analyser}
+          togglePlay={togglePlay}
+          toggleMute={toggleMute}
+          skipBackward={() => seek(Math.max(0, currentTime - 10))}
+          skipForward={() => seek(Math.min(duration, currentTime + 10))}
+          setVolume={setVolume}
+          seek={seek}
+          singerOverrideColors={currentSingerColors}
+        />
 
         <ConfigPanel 
           isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} appState={appState}
