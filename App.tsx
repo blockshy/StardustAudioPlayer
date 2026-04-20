@@ -68,7 +68,8 @@ const App: React.FC = () => {
     togglePlay,
     seek,
     setVolume,
-    toggleMute
+    toggleMute,
+    getCurrentTime
   } = useAudioPlayer(appState.audioUrl);
 
   useEffect(() => {
@@ -427,7 +428,7 @@ const App: React.FC = () => {
 
             <div className="w-[var(--lyrics-width)] h-[40vh] landscape:h-full lg:h-full relative min-h-0 transition-transform duration-500" style={{'--lyrics-width': `${appState.lyricsColumnWidth}%`, transform: `translate(${appState.lyricsColumnX}%, ${appState.lyricsColumnY}%)`} as any}>
                 <div className="absolute inset-0">
-                    <LyricsDisplay lyrics={appState.lyrics} currentTime={currentTime} themeColor={activeThemeColor} mainFontSize={appState.lyricFontSizeMain} subFontSize={appState.lyricFontSizeSub} themeMode={appState.themeMode} lyricOffset={appState.lyricOffset} lyricGapTolerance={appState.lyricGapTolerance} isBold={appState.lyricBold} activeColor={appState.lyricActiveColor} inactiveColor={appState.lyricInactiveColor} strokeWidth={appState.lyricStrokeWidth} strokeColor={appState.lyricStrokeColor} shadowEnabled={appState.lyricShadowEnabled} shadowDirection={appState.lyricShadowDirection} shadowStrength={appState.lyricShadowStrength} shadowDistance={appState.lyricShadowDistance} shadowBlur={appState.lyricShadowBlur} shadowColor={appState.lyricShadowColor || defaultLyricShadowColor} primaryLineIndex={appState.lyricPrimaryLineIndex} displayOrder={appState.lyricDisplayOrder} activeEffect={appState.activeLyricEffect} streamerColor={appState.activeLyricStreamerColor} singerOverrideColors={currentSingerColors} />
+                    <LyricsDisplay lyrics={appState.lyrics} currentTime={currentTime} isPlaying={isPlaying} isBuffering={isBuffering} getCurrentTime={getCurrentTime} themeColor={activeThemeColor} mainFontSize={appState.lyricFontSizeMain} subFontSize={appState.lyricFontSizeSub} activeSizeCompensation={appState.lyricActiveSizeCompensation} themeMode={appState.themeMode} lyricOffset={appState.lyricOffset} lyricGapTolerance={appState.lyricGapTolerance} isBold={appState.lyricBold} activeColor={appState.lyricActiveColor} inactiveColor={appState.lyricInactiveColor} strokeWidth={appState.lyricStrokeWidth} strokeColor={appState.lyricStrokeColor} inactiveBlurEnabled={appState.lyricInactiveBlurEnabled} inactiveBlurStrength={appState.lyricInactiveBlurStrength} shadowEnabled={appState.lyricShadowEnabled} shadowDirection={appState.lyricShadowDirection} shadowStrength={appState.lyricShadowStrength} shadowDistance={appState.lyricShadowDistance} shadowBlur={appState.lyricShadowBlur} shadowColor={appState.lyricShadowColor || defaultLyricShadowColor} primaryLineIndex={appState.lyricPrimaryLineIndex} displayOrder={appState.lyricDisplayOrder} activeEffect={appState.activeLyricEffect} streamerColor={appState.activeLyricStreamerColor} singerOverrideColors={currentSingerColors} />
                 </div>
                 
                 {appState.showSingerInfo && activeSinger && (
@@ -503,6 +504,8 @@ const App: React.FC = () => {
           onThemeModeChange={(m) => setAppState(prev => ({...prev, themeMode: m}))}
           onColorfulBaseChange={(b) => setAppState(prev => ({...prev, colorfulThemeBase: b}))}
           onLyricSizeChange={(t, s) => setAppState(prev => ({...prev, [t === 'main' ? 'lyricFontSizeMain' : 'lyricFontSizeSub']: s}))}
+          onLyricActiveSizeCompensationChange={(size) => setAppState(prev => ({...prev, lyricActiveSizeCompensation: size}))}
+          onLyricInactiveBlurChange={(key, value) => setAppState(prev => ({...prev, [key === 'enabled' ? 'lyricInactiveBlurEnabled' : 'lyricInactiveBlurStrength']: value}))}
           onLyricBoldChange={(b) => setAppState(prev => ({...prev, lyricBold: b}))}
           onLyricOffsetChange={(o) => setAppState(prev => ({...prev, lyricOffset: o}))}
           onLyricGapToleranceChange={(t) => setAppState(prev => ({...prev, lyricGapTolerance: t}))}
@@ -533,7 +536,7 @@ const App: React.FC = () => {
           onVinylRotationSpeedChange={(s) => setAppState(prev => ({...prev, vinylRotationSpeed: s}))}
           onCoverConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'x' ? 'coverImageX' : 'coverImageY']: v}))}
           onBackgroundConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'backgroundImageScale' : k === 'x' ? 'backgroundImageX' : 'backgroundImageY']: v}))}
-          onWaveBarConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'waveBarScale' : k === 'x' ? 'waveBarPositionX' : k === 'y' ? 'waveBarPositionY' : k === 'blur' ? 'waveBarBlur' : k === 'height' ? 'waveBarHeight' : 'waveBarOpacity']: v}))}
+          onWaveBarConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'waveBarScale' : k === 'x' ? 'waveBarPositionX' : k === 'y' ? 'waveBarPositionY' : k === 'blur' ? 'waveBarBlur' : k === 'height' ? 'waveBarHeight' : k === 'flow' ? 'waveBarFlowSpeed' : k === 'turbulence' ? 'waveBarTurbulence' : k === 'idle' ? 'waveBarIdleMotion' : 'waveBarOpacity']: v}))}
           onCoverArtStyleChange={(s) => setAppState(prev => ({...prev, coverArtStyle: s}))}
           onAlbumProgressConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'enable' ? 'enableAlbumProgress' : k === 'width' ? 'albumProgressWidth' : 'albumProgressOpacity']: v}))}
           presets={[...DEFAULT_PRESETS, ...customPresets]}

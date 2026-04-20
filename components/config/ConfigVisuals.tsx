@@ -9,7 +9,7 @@ import ParticleControls from './ParticleControls';
 interface ConfigVisualsProps {
     appState: AppState;
     onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
-    onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height', value: number) => void;
+    onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height' | 'flow' | 'turbulence' | 'idle', value: number) => void;
     onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
     onParticleSizeChange: (size: number) => void;
     onParticleBaseSpeedChange: (speed: number) => void;

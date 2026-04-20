@@ -7,7 +7,7 @@ import { getThemeClasses } from '../../utils/themeStyles';
 interface WaveControlsProps {
     appState: AppState;
     onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
-    onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height', value: number) => void;
+    onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height' | 'flow' | 'turbulence' | 'idle', value: number) => void;
     onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
     translations: any;
 }
@@ -57,6 +57,21 @@ const WaveControls: React.FC<WaveControlsProps> = ({
                     </div>
                     <div>
                         <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span>{t.waveAmplitude}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.waveBarScale * 100)}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0.4"
+                            max="2.2"
+                            step="0.05"
+                            value={appState.waveBarScale}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('scale', Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
                             <span className="flex items-center gap-1"><MdHeight className={themeClasses.textMuted} /> {t.waveHeight}</span>
                             <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.waveBarHeight)}%</span>
                         </div>
@@ -67,6 +82,81 @@ const WaveControls: React.FC<WaveControlsProps> = ({
                             step="1" 
                             value={appState.waveBarHeight}
                             onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('height', Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span>{t.waveWaterLevel}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.waveBarPositionY > 0 ? '+' : ''}{Math.round(appState.waveBarPositionY)}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="-25"
+                            max="25"
+                            step="1"
+                            value={appState.waveBarPositionY}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('y', Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span>{t.waveOpacity}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.waveBarOpacity * 100)}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0.05"
+                            max="1"
+                            step="0.05"
+                            value={appState.waveBarOpacity}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('opacity', Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span>{t.waveFlowSpeed}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.waveBarFlowSpeed.toFixed(2)}x</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0.4"
+                            max="2.4"
+                            step="0.05"
+                            value={appState.waveBarFlowSpeed}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('flow', Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span>{t.waveTurbulence}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.waveBarTurbulence.toFixed(2)}x</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="2.5"
+                            step="0.05"
+                            value={appState.waveBarTurbulence}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('turbulence', Number(e.target.value))}
+                            className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
+                        />
+                    </div>
+                    <div>
+                        <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
+                            <span>{t.waveIdleMotion}</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.waveBarIdleMotion * 100)}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="0.24"
+                            step="0.01"
+                            value={appState.waveBarIdleMotion}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('idle', Number(e.target.value))}
                             className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
                         />
                     </div>

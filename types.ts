@@ -83,6 +83,7 @@ export interface AppState {
   metadata: Metadata;
   lyricFontSizeMain: number;
   lyricFontSizeSub: number;
+  lyricActiveSizeCompensation: number;
   lyricBold: boolean; 
   lyricOffset: number; 
   lyricGapTolerance: number; 
@@ -90,6 +91,8 @@ export interface AppState {
   lyricInactiveColor: string | null; 
   lyricStrokeWidth: number; 
   lyricStrokeColor: string;
+  lyricInactiveBlurEnabled: boolean;
+  lyricInactiveBlurStrength: number;
   lyricShadowEnabled: boolean;
   lyricShadowDirection: number;
   lyricShadowStrength: number;
@@ -195,6 +198,9 @@ export interface AppState {
   waveBarBlur: number; 
   waveBarOpacity: number; 
   waveBarHeight: number;
+  waveBarFlowSpeed: number;
+  waveBarTurbulence: number;
+  waveBarIdleMotion: number;
 
   coverArtStyle: CoverArtStyle; 
   enableAlbumProgress: boolean; 

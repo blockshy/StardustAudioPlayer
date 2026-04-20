@@ -188,7 +188,13 @@ const PlayerControlBar: React.FC<PlayerControlBarProps> = ({
                     themeMode={appState.themeMode}
                     colorfulThemeBase={appState.colorfulThemeBase}
                     sensitivity={appState.barSensitivity}
+                    waveScale={appState.waveBarScale}
+                    waveOffsetY={appState.waveBarPositionY}
+                    waveOpacity={appState.waveBarOpacity}
                     waveHeight={appState.waveBarHeight}
+                    flowSpeed={appState.waveBarFlowSpeed}
+                    turbulence={appState.waveBarTurbulence}
+                    idleMotion={appState.waveBarIdleMotion}
                     blur={appState.waveBarBlur}
                     singerOverrideColors={singerOverrideColors}
                 />

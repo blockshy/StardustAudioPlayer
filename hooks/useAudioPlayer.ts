@@ -256,6 +256,11 @@ export const useAudioPlayer = (audioUrl: string | null) => {
     audio.volume = clamp(vol, 0, 1);
   }, []);
 
+  const getCurrentTime = useCallback(() => {
+    const audio = audioRef.current;
+    return audio ? audio.currentTime : 0;
+  }, []);
+
   const toggleMute = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -275,5 +280,6 @@ export const useAudioPlayer = (audioUrl: string | null) => {
     seek,
     setVolume,
     toggleMute,
+    getCurrentTime,
   };
 };

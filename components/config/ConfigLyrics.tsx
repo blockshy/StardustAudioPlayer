@@ -8,6 +8,8 @@ interface ConfigLyricsProps {
     appState: AppState;
     onLyricLineConfigChange: (key: 'primaryIndex' | 'order', value: number | number[]) => void;
     onLyricSizeChange: (type: 'main' | 'sub', size: number) => void;
+    onLyricActiveSizeCompensationChange: (size: number) => void;
+    onLyricInactiveBlurChange: (key: 'enabled' | 'strength', value: boolean | number) => void;
     onLyricBoldChange: (isBold: boolean) => void;
     onLyricColorChange: (key: 'active' | 'inactive' | 'stroke' | 'strokeWidth' | 'effect' | 'streamerColor', value: string | number | null | LyricEffect) => void;
     onLyricShadowChange: (key: 'enabled' | 'direction' | 'strength' | 'distance' | 'blur' | 'color', value: boolean | number | string | null) => void;
@@ -30,6 +32,8 @@ const ConfigLyrics: React.FC<ConfigLyricsProps> = (props) => {
                     appState={appState}
                     onLyricLineConfigChange={props.onLyricLineConfigChange}
                     onLyricSizeChange={props.onLyricSizeChange}
+                    onLyricActiveSizeCompensationChange={props.onLyricActiveSizeCompensationChange}
+                    onLyricInactiveBlurChange={props.onLyricInactiveBlurChange}
                     onLyricBoldChange={props.onLyricBoldChange}
                     onLyricColorChange={props.onLyricColorChange}
                     onLyricShadowChange={props.onLyricShadowChange}
