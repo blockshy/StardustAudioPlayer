@@ -2,9 +2,11 @@
 import React from 'react';
 import { MdAlbum } from 'react-icons/md';
 import { VinylStyle, ThemeMode } from '../types';
+import CoverImage from './CoverImage';
 
 interface VinylDiskProps {
   coverUrl: string | null;
+  coverFile?: File | null;
   isPlaying: boolean;
   analyser: AnalyserNode | null;
   themeColor: string;
@@ -29,6 +31,7 @@ interface VinylDiskProps {
 
 const VinylDisk: React.FC<VinylDiskProps> = ({ 
   coverUrl, 
+  coverFile = null,
   isPlaying, 
   analyser, 
   themeColor, 
@@ -150,7 +153,18 @@ const VinylDisk: React.FC<VinylDiskProps> = ({
         >
           {coverUrl ? (
             <div className="w-full h-full relative">
-                <img src={coverUrl} alt="Album Cover" className="w-full h-full object-cover opacity-95" style={{ objectPosition: `${50 + coverImageX}% ${50 + coverImageY}%` }} />
+                <CoverImage
+                  src={coverUrl}
+                  file={coverFile}
+                  alt="Album Cover"
+                  className="w-full h-full object-cover opacity-95"
+                  style={{ objectPosition: `${50 + coverImageX}% ${50 + coverImageY}%` }}
+                  fallback={
+                    <div className="flex h-full w-full flex-col items-center justify-center text-white/20">
+                      <MdAlbum size="50%" />
+                    </div>
+                  }
+                />
                 <div className="absolute inset-0 bg-white/10 mix-blend-overlay pointer-events-none" 
                      style={{backgroundImage: 'radial-gradient(rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '4px 4px'}}></div>
             </div>

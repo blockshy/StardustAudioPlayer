@@ -29,6 +29,24 @@ interface LyricsDisplayProps {
   singerOverrideColors?: string[] | null;
 }
 
+const buildOutlineTextShadow = (width: number, color: string) => {
+  if (width <= 0 || !color) return '';
+
+  const shadows: string[] = [];
+  const addRing = (radius: number, steps: number) => {
+    for (let i = 0; i < steps; i += 1) {
+      const angle = (Math.PI * 2 * i) / steps;
+      shadows.push(`${(Math.cos(angle) * radius).toFixed(2)}px ${(Math.sin(angle) * radius).toFixed(2)}px 0 ${color}`);
+    }
+  };
+
+  addRing(width, 12);
+  if (width > 1) addRing(width * 0.66, 8);
+  if (width > 2) addRing(width * 0.33, 4);
+
+  return shadows.join(', ');
+};
+
 const LyricsDisplay: React.FC<LyricsDisplayProps> = ({ 
   lyrics, 
   currentTime, 
@@ -75,6 +93,7 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
     return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
   };
   const shadowColorRgba = toRgba(shadowColor, shadowStrength);
+  const outlineShadowValue = buildOutlineTextShadow(strokeWidth, strokeColor);
 
   let activeIndex = lyrics.findIndex(
     (line) => adjustedTime >= line.start && adjustedTime <= line.end
@@ -155,7 +174,6 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
             const finalInactive = inactiveColor || (isDarkBase ? '#ffffff' : '#000000');
             const activeWeight = isBold ? 'font-bold' : 'font-medium';
             const inactiveWeight = isBold ? 'font-normal' : 'font-light';
-            const strokeStyle = strokeWidth > 0 ? { WebkitTextStroke: `${strokeWidth}px ${strokeColor}` } : {};
 
             const isSingerGradient = isActive && singerOverrideColors && singerOverrideColors.length > 1;
             const underlineShadow = shadowEnabled ? `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px ${shadowBlur}px ${shadowColorRgba}` : '0 0 0 transparent';
@@ -179,11 +197,19 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
                     const shouldRenderShadow = shadowEnabled && isActive;
                     const shadowValue = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px ${shadowBlur}px ${shadowColorRgba}`;
                     const shouldUseDropShadow = shouldRenderShadow && (applyFluid || isSingerGradient);
+                    const textShadows: string[] = [];
+
+                    if (outlineShadowValue) {
+                        textShadows.push(outlineShadowValue);
+                    }
+
+                    if (shouldRenderShadow && !shouldUseDropShadow) {
+                        textShadows.push(shadowValue);
+                    }
                     
                     const dynamicTextStyle: React.CSSProperties = {
                         fontSize: `${isPrimary ? mainFontSize : subFontSize}px`,
-                        ...strokeStyle,
-                        textShadow: shouldRenderShadow && !shouldUseDropShadow ? shadowValue : 'none',
+                        textShadow: textShadows.length > 0 ? textShadows.join(', ') : 'none',
                         filter: shouldUseDropShadow ? `drop-shadow(${shadowValue})` : 'none'
                     };
 

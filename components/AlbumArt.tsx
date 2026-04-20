@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MdAlbum } from 'react-icons/md';
 import VinylDisk from './VinylDisk';
+import CoverImage from './CoverImage';
 import { AppState } from '../types';
 
 interface AlbumArtProps {
@@ -87,6 +88,7 @@ const AlbumArt: React.FC<AlbumArtProps> = ({ appState, isPlaying, analyser, curr
     return (
       <VinylDisk 
         coverUrl={appState.coverUrl} 
+        coverFile={appState.coverFile}
         isPlaying={isPlaying} 
         analyser={analyser} 
         themeColor={singerOverrideColors && singerOverrideColors.length > 0 ? singerOverrideColors[0] : appState.themeColor}
@@ -145,7 +147,20 @@ const AlbumArt: React.FC<AlbumArtProps> = ({ appState, isPlaying, analyser, curr
         <div ref={containerRef} className={commonSizeClass} style={{ '--vs': vinylScale } as React.CSSProperties} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
             <div className="relative w-full h-full transition-transform duration-100 ease-out" style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}>
                 <div className="w-full h-full rounded-2xl shadow-2xl relative overflow-hidden" style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${1 + (audioLevel * 0.05 * vinylSensitivity)})`, transition: isHovering ? 'none' : 'transform 0.5s ease', boxShadow: `${-tilt.y * 1.5}px ${tilt.x * 1.5}px 30px rgba(0,0,0,0.5)` }}>
-                    {coverUrl ? <img src={coverUrl} alt="Album Art" className="w-full h-full object-cover rounded-2xl" style={{ objectPosition: `${50 + coverImageX}% ${50 + coverImageY}%` }} /> : <div className="w-full h-full bg-gray-900 rounded-2xl flex items-center justify-center"><MdAlbum size={50} className="text-white/20" /></div>}
+                    {coverUrl ? (
+                        <CoverImage
+                            src={coverUrl}
+                            file={appState.coverFile}
+                            alt="Album Art"
+                            className="w-full h-full object-cover rounded-2xl"
+                            style={{ objectPosition: `${50 + coverImageX}% ${50 + coverImageY}%` }}
+                            fallback={
+                                <div className="w-full h-full bg-gray-900 rounded-2xl flex items-center justify-center">
+                                    <MdAlbum size={50} className="text-white/20" />
+                                </div>
+                            }
+                        />
+                    ) : <div className="w-full h-full bg-gray-900 rounded-2xl flex items-center justify-center"><MdAlbum size={50} className="text-white/20" /></div>}
                     <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: `linear-gradient(135deg, rgba(255,255,255,${0.1 + (audioLevel * 0.2)}) 0%, transparent 50%)`, mixBlendMode: 'overlay' }} />
                     <div className="absolute inset-0 rounded-2xl bg-black/50 -z-10 blur-md transform translate-z-[-20px]" style={{ transform: 'translateZ(-20px) scale(0.95)' }} />
                     {enableAlbumProgress && <RectProgressOverlay borderRadius={16} />}

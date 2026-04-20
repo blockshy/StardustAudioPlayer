@@ -15,6 +15,12 @@ import TrackInfo from './components/TrackInfo';
 import PlayerControlBar from './components/PlayerControlBar';
 import { loadPersistedAsset, PersistedAssetType, PERSISTED_ASSET_TYPES, removePersistedAsset, savePersistedAsset } from './utils/persistedAssets';
 
+const revokeObjectUrl = (url: string | null | undefined) => {
+  if (url?.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+};
+
 const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   
@@ -43,6 +49,11 @@ const App: React.FC = () => {
   });
   const [isRestoringAssets, setIsRestoringAssets] = useState(false);
   const appStateRef = useRef(appState);
+  const latestAssetUrlsRef = useRef({
+    audio: null as string | null,
+    cover: null as string | null,
+    background: null as string | null,
+  });
 
   const {
     isPlaying,
@@ -166,7 +177,7 @@ const App: React.FC = () => {
 
     if (type === 'audio') {
       const url = URL.createObjectURL(file);
-      if (currentState.audioUrl) URL.revokeObjectURL(currentState.audioUrl);
+      revokeObjectUrl(currentState.audioUrl);
       setAppState(prev => ({
         ...prev,
         audioFile: file,
@@ -183,7 +194,7 @@ const App: React.FC = () => {
               let nextCoverUrl = prev.coverUrl;
 
               if (shouldUseEmbeddedCover) {
-                if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
+                revokeObjectUrl(prev.coverUrl);
                 const { data, format } = picture;
                 const blob = new Blob([new Uint8Array(data)], { type: format });
                 nextCoverUrl = URL.createObjectURL(blob);
@@ -207,12 +218,12 @@ const App: React.FC = () => {
       }
     } else if (type === 'cover') {
       const url = URL.createObjectURL(file);
-      if (currentState.coverUrl) URL.revokeObjectURL(currentState.coverUrl);
+      revokeObjectUrl(currentState.coverUrl);
       setAppState(prev => ({ ...prev, coverFile: file, coverUrl: url, coverImageX: 0, coverImageY: 0 }));
       updateThemeColorFromUrl(url);
     } else if (type === 'background') {
       const url = URL.createObjectURL(file);
-      if (currentState.backgroundImageUrl) URL.revokeObjectURL(currentState.backgroundImageUrl);
+      revokeObjectUrl(currentState.backgroundImageUrl);
       setAppState(prev => ({ ...prev, backgroundImageFile: file, backgroundImageUrl: url }));
     } else if (type === 'srt') {
       const content = await file.text();
@@ -248,19 +259,19 @@ const App: React.FC = () => {
 
       switch (type) {
         case 'audio':
-          if (prev.audioUrl) URL.revokeObjectURL(prev.audioUrl);
+          revokeObjectUrl(prev.audioUrl);
           nextState.audioFile = null;
           nextState.audioUrl = null;
           break;
         case 'cover':
-          if (prev.coverUrl) URL.revokeObjectURL(prev.coverUrl);
+          revokeObjectUrl(prev.coverUrl);
           nextState.coverFile = null;
           nextState.coverUrl = null;
           nextState.coverImageX = DEFAULT_STATE.coverImageX;
           nextState.coverImageY = DEFAULT_STATE.coverImageY;
           break;
         case 'background':
-          if (prev.backgroundImageUrl) URL.revokeObjectURL(prev.backgroundImageUrl);
+          revokeObjectUrl(prev.backgroundImageUrl);
           nextState.backgroundImageFile = null;
           nextState.backgroundImageUrl = null;
           nextState.backgroundImageScale = DEFAULT_STATE.backgroundImageScale;
@@ -330,11 +341,19 @@ const App: React.FC = () => {
     };
   }, [applyAssetFile]);
 
-  useEffect(() => () => {
-    if (appState.audioUrl) URL.revokeObjectURL(appState.audioUrl);
-    if (appState.coverUrl) URL.revokeObjectURL(appState.coverUrl);
-    if (appState.backgroundImageUrl) URL.revokeObjectURL(appState.backgroundImageUrl);
+  useEffect(() => {
+    latestAssetUrlsRef.current = {
+      audio: appState.audioUrl,
+      cover: appState.coverUrl,
+      background: appState.backgroundImageUrl,
+    };
   }, [appState.audioUrl, appState.coverUrl, appState.backgroundImageUrl]);
+
+  useEffect(() => () => {
+    revokeObjectUrl(latestAssetUrlsRef.current.audio);
+    revokeObjectUrl(latestAssetUrlsRef.current.cover);
+    revokeObjectUrl(latestAssetUrlsRef.current.background);
+  }, []);
 
   const handleSavePreset = useCallback((name: string, idToOverwrite?: string) => {
       const persistableConfig: Partial<AppState> = {};
