@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { MdSpeed, MdGraphicEq, MdFormatSize, MdExplore, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdClose, MdAdd, MdDelete } from 'react-icons/md';
-import { AppState, ParticleType, ParticleDirection } from '../../types';
+import { AppState, ParticleType, ParticleDirection, VisualizerKey } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface ParticleControlsProps {
     appState: AppState;
-    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
+    onVisualizerChange: (key: VisualizerKey, value: boolean) => void;
     onParticleSizeChange: (size: number) => void;
     onParticleBaseSpeedChange: (speed: number) => void;
     onParticleDensityChange: (density: number) => void;

@@ -158,9 +158,8 @@ export const DEFAULT_STATE: AppState = {
     playerBarBlur: 16,
     playerBarPositionX: 0,
     playerBarPositionY: 4,
-    waveBarScale: 1.0,
-    waveBarPositionX: 0,
-    waveBarPositionY: 0,
+    waveBarAmplitude: 1.0,
+    waveBarWaterLevel: 0,
     waveBarBlur: 2,
     waveBarOpacity: 0.4,
     waveBarHeight: 10,
@@ -178,7 +177,6 @@ export const DEFAULT_STATE: AppState = {
     showVinylCenterDot: true,
     vinylScale: 1.0,
     vinylRotationSpeed: 1.0,
-    lyricEffect: 'glow',
 
 };
 
@@ -235,36 +233,4 @@ export const DEFAULT_PRESETS: AppPreset[] = [
             lyricsColumnY: 0
         }
     }
-];
-
-export const CONFIG_KEYS: (keyof AppState)[] = [
-    'language', 'themeMode', 'colorfulThemeBase', 'colorfulColors', 'themeColor', 'metadata',
-    'lyricFontSizeMain', 'lyricFontSizeSub', 'lyricActiveSizeCompensation', 'lyricBold', 'lyricOffset', 'lyricGapTolerance',
-    'lyricActiveColor', 'lyricInactiveColor', 'lyricStrokeWidth', 'lyricStrokeColor', 'lyricInactiveBlurEnabled', 'lyricInactiveBlurStrength',
-    'lyricShadowEnabled', 'lyricShadowDirection', 'lyricShadowStrength', 'lyricShadowDistance', 'lyricShadowBlur', 'lyricShadowColor',
-    'lyricPrimaryLineIndex', 'lyricDisplayOrder', 'activeLyricEffect', 'activeLyricStreamerColor', 
-    'trackTitleSize', 'trackTitleColor', 'trackTitleBold', 'trackTitleItalic',
-    'trackTitleShadowEnabled', 'trackTitleShadowDirection', 'trackTitleShadowStrength', 'trackTitleShadowDistance', 'trackTitleShadowBlur', 'trackTitleShadowColor',
-    'trackArtistSize', 'trackArtistColor', 'trackArtistBold', 'trackArtistItalic',
-    'trackArtistShadowEnabled', 'trackArtistShadowDirection', 'trackArtistShadowStrength', 'trackArtistShadowDistance', 'trackArtistShadowBlur', 'trackArtistShadowColor',
-    'trackAlbumSize', 'trackAlbumColor', 'trackAlbumBold', 'trackAlbumItalic',
-    'trackAlbumShadowEnabled', 'trackAlbumShadowDirection', 'trackAlbumShadowStrength', 'trackAlbumShadowDistance', 'trackAlbumShadowBlur', 'trackAlbumShadowColor',
-    'trackVisualArtistSize', 'trackVisualArtistColor', 'trackVisualArtistBold', 'trackVisualArtistItalic',
-    'trackVisualArtistShadowEnabled', 'trackVisualArtistShadowDirection', 'trackVisualArtistShadowStrength', 'trackVisualArtistShadowDistance', 'trackVisualArtistShadowBlur', 'trackVisualArtistShadowColor',
-    'trackCoverSingerSize', 'trackCoverSingerColor', 'trackCoverSingerBold', 'trackCoverSingerItalic',
-    'trackCoverSingerShadowEnabled', 'trackCoverSingerShadowDirection', 'trackCoverSingerShadowStrength', 'trackCoverSingerShadowDistance', 'trackCoverSingerShadowBlur', 'trackCoverSingerShadowColor',
-    'enableWaves', 'enableParticles', 'enableParticleClimaxDensityBoost',
-    'particleType', 'particleDirection', 'particleColor', 'particlePalettes', 'useThemeColorForParticles',
-    'vinylSensitivity', 'barSensitivity', 'particleSize', 'particleBaseSpeed', 'baseParticleDensity', 'climaxDensitySensitivity', 'climaxDensityBoostStrength',
-    'contentMaxWidth', 'albumColumnWidth', 'lyricsColumnWidth', 'columnGapWidth', 
-    'albumColumnX', 'albumColumnY', 'albumInfoGap', 'lyricsColumnX', 'lyricsColumnY',
-    'playerControlsOpacity', 'playerBarWidth', 'playerBarHeight', 'playerBarBlur', 'playerBarPositionX', 'playerBarPositionY',
-    'waveBarScale', 'waveBarPositionX', 'waveBarPositionY', 'waveBarBlur', 'waveBarOpacity', 'waveBarHeight', 'waveBarFlowSpeed', 'waveBarTurbulence', 'waveBarIdleMotion',
-    'coverArtStyle', 'enableAlbumProgress', 'albumProgressWidth', 'albumProgressOpacity',
-    'vinylStyle', 'vinylLabelSize', 'showVinylCenterDot', 'vinylScale', 'vinylRotationSpeed',
-    'coverImageX', 'coverImageY',
-    'backgroundImageScale', 'backgroundImageX', 'backgroundImageY',
-    'lyricEffect',
-    'singerInfoFontSize', 'singerInfoOrientation', 'singerInfoX', 'singerInfoY', 'singerThemeGroups', 'showSingerInfo', 'forceOverrideSingerTheme',
-    'singerLyricOffset', 'singerLyricGapTolerance', 'configSidebarWidth', 'configContentLeftPadding'
 ];

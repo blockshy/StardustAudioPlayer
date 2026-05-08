@@ -1,17 +1,17 @@
 
 import React from 'react';
 import { MdSpaceDashboard, MdPerson, MdTextRotateVertical, MdTextRotationNone, MdPanTool, MdTimer, MdFormatSize } from 'react-icons/md';
-import { AppState } from '../../types';
+import { AppState, LayoutDimensionKey, PlayerBarDimensionKey, SingerInfoConfigKey, SingerInfoConfigValue } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 import LayoutDimensions from './LayoutDimensions';
 import PlayerBarControls from './PlayerBarControls';
 
 interface ConfigLayoutProps {
     appState: AppState;
-    onLayoutDimensionChange: (key: 'total' | 'album' | 'lyrics' | 'gap' | 'albumX' | 'albumY' | 'infoGap' | 'lyricsX' | 'lyricsY', value: number) => void;
-    onPlayerBarDimensionChange: (key: 'width' | 'height' | 'blur' | 'x' | 'y', value: number) => void;
+    onLayoutDimensionChange: (key: LayoutDimensionKey, value: number) => void;
+    onPlayerBarDimensionChange: (key: PlayerBarDimensionKey, value: number) => void;
     onPlayerOpacityChange: (value: number) => void;
-    onSingerInfoConfigChange?: (key: string, value: any) => void;
+    onSingerInfoConfigChange?: (key: SingerInfoConfigKey, value: SingerInfoConfigValue) => void;
     translations: any;
 }
 

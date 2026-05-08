@@ -1,37 +1,84 @@
 
-import React from 'react';
-import { MdLibraryMusic, MdMusicNote, MdImage, MdWallpaper, MdSubtitles, MdCheck, MdClose, MdRestartAlt, MdZoomIn, MdPanTool, MdPersonSearch } from 'react-icons/md';
-import { AppState } from '../../types';
+import React, { useState } from 'react';
+import { MdLibraryMusic, MdMusicNote, MdImage, MdWallpaper, MdSubtitles, MdCheck, MdClose, MdRestartAlt, MdZoomIn, MdPanTool, MdPersonSearch, MdDeleteSweep, MdStorage } from 'react-icons/md';
+import { AppState, AssetInputType } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
+import { PersistedAssetInfo } from '../../utils/persistedAssets';
+
+type VisibleAssetInputType = Exclude<AssetInputType, 'customParticle'>;
 
 interface ConfigAssetsProps {
     appState: AppState;
     isRestoringAssets: boolean;
-    onFileChange: (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt', file: File) => void;
-    onFileRemove: (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => void;
+    persistedAssetInfo: PersistedAssetInfo[];
+    onFileChange: (type: AssetInputType, file: File) => void | Promise<void>;
+    onFileRemove: (type: AssetInputType) => void;
+    onClearPersistedAssets: () => void;
     onCoverConfigChange: (key: 'x' | 'y', value: number) => void;
     onBackgroundConfigChange: (key: 'scale' | 'x' | 'y', value: number) => void;
     translations: any;
 }
 
 const ConfigAssets: React.FC<ConfigAssetsProps> = ({ 
-    appState, isRestoringAssets, onFileChange, onFileRemove, onCoverConfigChange, onBackgroundConfigChange, translations: t 
+    appState, isRestoringAssets, persistedAssetInfo, onFileChange, onFileRemove, onClearPersistedAssets, onCoverConfigChange, onBackgroundConfigChange, translations: t 
 }) => {
     const themeClasses = getThemeClasses(appState);
+    const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
     
-    const assetLabels: Record<string, string> = {
+    const assetLabels: Record<AssetInputType, string> = {
         'audio': t.audioTrack,
         'cover': t.albumArt,
         'background': t.bgImage,
         'srt': t.lyricsSrt,
-        'singerSrt': t.singerSrt
+        'singerSrt': t.singerSrt,
+        'customParticle': ''
     };
 
-    const handleFileChangeWrapper = (e: React.ChangeEvent<HTMLInputElement>, type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => {
-        if (e.target.files && e.target.files[0]) {
-          onFileChange(type, e.target.files[0]);
+    const getFileErrorMessage = (error: unknown) => {
+        const errorCode = error instanceof Error ? error.message : '';
+        if (errorCode === 'srt_file_too_large') return t.srtImportTooLarge;
+        if (errorCode === 'srt_file_invalid') return t.srtImportInvalid;
+        return t.fileImportFailed;
+    };
+
+    const handleFileChangeWrapper = async (e: React.ChangeEvent<HTMLInputElement>, type: AssetInputType) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            await onFileChange(type, file);
+            setFeedback({ tone: 'success', message: t.fileImportSuccess });
+        } catch (error) {
+            console.warn(`Failed to apply ${type} file.`, error);
+            setFeedback({ tone: 'error', message: getFileErrorMessage(error) });
         }
     };
+
+    const formatBytes = (bytes: number) => {
+        if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        const value = bytes / (1024 ** exponent);
+        return `${value >= 10 || exponent === 0 ? Math.round(value) : value.toFixed(1)} ${units[exponent]}`;
+    };
+
+    const persistedTotalSize = persistedAssetInfo.reduce((sum, item) => sum + item.size, 0);
+    const persistedSummary = persistedAssetInfo.length > 0
+        ? `${persistedAssetInfo.length} ${t.savedFiles} / ${formatBytes(persistedTotalSize)}`
+        : t.noSavedFiles;
+    const assetItems = [
+        { id: 'audio', label: t.audioTrack, icon: MdMusicNote, file: appState.audioFile, color: 'text-blue-400' },
+        { id: 'cover', label: t.albumArt, icon: MdImage, file: appState.coverFile, color: 'text-purple-400' },
+        { id: 'background', label: t.bgImage, icon: MdWallpaper, file: appState.backgroundImageFile, color: 'text-orange-400' },
+        { id: 'srt', label: t.lyricsSrt, icon: MdSubtitles, file: appState.srtFile, color: 'text-emerald-400' },
+        { id: 'singerSrt', label: t.singerSrt, icon: MdPersonSearch, file: appState.singerSrtFile, color: 'text-amber-400' }
+    ] as const satisfies readonly {
+        id: VisibleAssetInputType;
+        label: string;
+        icon: React.ComponentType<{ size?: number; className?: string }>;
+        file: File | null;
+        color: string;
+    }[];
 
     const resetBackgroundConfig = () => {
         onBackgroundConfigChange('scale', 1.05);
@@ -55,14 +102,46 @@ const ConfigAssets: React.FC<ConfigAssetsProps> = ({
                     {t.restoringAssets}
                 </div>
             )}
+
+            <div className={`rounded-lg border ${themeClasses.border} ${themeClasses.itemBg} px-3 py-3 ${themeClasses.textMuted}`}>
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <div className={`flex items-center gap-2 text-[10px] uppercase tracking-wider ${themeClasses.textSub}`}>
+                            <MdStorage /> {persistedSummary}
+                        </div>
+                        <p className="mt-1 text-[11px] leading-5 normal-case tracking-normal">
+                            {t.localAssetNotice}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClearPersistedAssets}
+                        disabled={persistedAssetInfo.length === 0}
+                        className={`shrink-0 rounded border px-2 py-1 text-[10px] uppercase tracking-wider transition-colors ${persistedAssetInfo.length === 0 ? `${themeClasses.border} ${themeClasses.textVeryMuted} cursor-not-allowed` : 'border-red-400/40 text-red-400 hover:bg-red-500 hover:text-white'}`}
+                        title={t.clearLocalFiles}
+                    >
+                        <span className="inline-flex items-center gap-1"><MdDeleteSweep /> {t.clear}</span>
+                    </button>
+                </div>
+            </div>
+
+            {feedback && (
+                <div
+                    className={`rounded-lg border px-3 py-2 text-xs leading-5 ${
+                        feedback.tone === 'success'
+                            ? appState.themeMode === 'light' || (appState.themeMode === 'colorful' && appState.colorfulThemeBase === 'light')
+                                ? 'border-emerald-500/25 bg-emerald-500/8 text-emerald-700'
+                                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+                            : appState.themeMode === 'light' || (appState.themeMode === 'colorful' && appState.colorfulThemeBase === 'light')
+                                ? 'border-rose-500/25 bg-rose-500/8 text-rose-700'
+                                : 'border-rose-500/30 bg-rose-500/10 text-rose-200'
+                    }`}
+                >
+                    {feedback.message}
+                </div>
+            )}
             
-            {[
-                { id: 'audio', label: t.audioTrack, icon: MdMusicNote, file: appState.audioFile, color: 'text-blue-400' },
-                { id: 'cover', label: t.albumArt, icon: MdImage, file: appState.coverFile, color: 'text-purple-400' },
-                { id: 'background', label: t.bgImage, icon: MdWallpaper, file: appState.backgroundImageFile, color: 'text-orange-400' },
-                { id: 'srt', label: t.lyricsSrt, icon: MdSubtitles, file: appState.srtFile, color: 'text-emerald-400' },
-                { id: 'singerSrt', label: t.singerSrt, icon: MdPersonSearch, file: appState.singerSrtFile, color: 'text-amber-400' }
-            ].map((item) => (
+            {assetItems.map((item) => (
                 <div key={item.id} className={`group relative ${themeClasses.itemBg} ${themeClasses.itemHover} border ${themeClasses.border} hover:${themeClasses.borderActive} rounded-xl p-4 transition-all duration-300`}>
                     <label className="flex items-center gap-4 cursor-pointer w-full">
                         <div className={`p-3 rounded-lg ${themeClasses.isDarkBase ? 'bg-black/40' : 'bg-white/40'} ${item.color} shadow-inner`}>
@@ -81,7 +160,7 @@ const ConfigAssets: React.FC<ConfigAssetsProps> = ({
                             type="file"
                             accept={item.id === 'audio' ? "audio/*" : item.id === 'srt' || item.id === 'singerSrt' ? ".srt" : "image/*"}
                             className="hidden"
-                            onChange={(e) => handleFileChangeWrapper(e, item.id as any)}
+                            onChange={(e) => handleFileChangeWrapper(e, item.id)}
                             onClick={(e) => (e.currentTarget.value = '')} 
                         />
                     </label>
@@ -91,7 +170,7 @@ const ConfigAssets: React.FC<ConfigAssetsProps> = ({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                onFileRemove(item.id as any);
+                                onFileRemove(item.id);
                             }}
                             className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors z-10"
                             title="Remove file"

@@ -1,6 +1,35 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { AppState, Metadata, VinylStyle, ParticleType, AppPreset, CoverArtStyle, Language, ThemeMode, ParticleDirection, SingerThemeGroup } from '../types';
+import {
+  AlbumProgressConfigKey,
+  AlbumProgressConfigValue,
+  AppState,
+  AssetInputType,
+  Metadata,
+  VinylStyle,
+  ParticleType,
+  AppPreset,
+  CoverArtStyle,
+  Language,
+  ThemeMode,
+  ParticleDirection,
+  SingerThemeGroup,
+  LyricColorKey,
+  LyricColorValue,
+  LyricShadowKey,
+  LyricShadowValue,
+  TrackTypographyField,
+  TrackTypographyProp,
+  TrackTypographyValue,
+  VisualizerKey,
+  LayoutDimensionKey,
+  PlayerBarDimensionKey,
+  WaveBarConfigKey,
+  SingerInfoConfigKey,
+  SingerInfoConfigValue,
+} from '../types';
+import { PersistedAssetInfo } from '../utils/persistedAssets';
+import { PresetImportSummary } from '../utils/presetTransfer';
 import { MdClose, MdOpenInNew, MdInput } from 'react-icons/md';
 import { translations } from '../utils/translations';
 import { getThemeClasses } from '../utils/themeStyles';
@@ -21,8 +50,10 @@ interface ConfigPanelProps {
   onClose: () => void;
   appState: AppState;
   isRestoringAssets: boolean;
-  onFileChange: (type: any, file: File) => void;
-  onFileRemove: (type: any) => void;
+  persistedAssetInfo: PersistedAssetInfo[];
+  onFileChange: (type: AssetInputType, file: File) => void | Promise<void>;
+  onFileRemove: (type: AssetInputType) => void;
+  onClearPersistedAssets: () => void;
   onMetadataChange: (key: keyof Metadata, value: string) => void;
   onThemeChange: (color: string) => void;
   onColorfulColorsChange: (colors: string[]) => void;
@@ -34,12 +65,12 @@ interface ConfigPanelProps {
   onLyricBoldChange: (isBold: boolean) => void;
   onLyricOffsetChange: (offset: number) => void;
   onLyricGapToleranceChange: (tolerance: number) => void;
-  onLyricColorChange: (key: any, value: any) => void;
-  onLyricShadowChange: (key: 'enabled' | 'direction' | 'strength' | 'distance' | 'blur' | 'color', value: boolean | number | string | null) => void;
+  onLyricColorChange: (key: LyricColorKey, value: LyricColorValue) => void;
+  onLyricShadowChange: (key: LyricShadowKey, value: LyricShadowValue) => void;
   onLyricLineConfigChange: (key: 'primaryIndex' | 'order', value: number | number[]) => void;
-  onTrackTypographyChange: (field: any, prop: any, value: any) => void;
-  onTrackInfoSizeChange: (key: any, value: any) => void;
-  onVisualizerChange: (key: any, value: boolean) => void;
+  onTrackTypographyChange: (field: TrackTypographyField, prop: TrackTypographyProp, value: TrackTypographyValue) => void;
+  onTrackInfoSizeChange: () => void;
+  onVisualizerChange: (key: VisualizerKey, value: boolean) => void;
   onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
   onParticleSizeChange: (size: number) => void;
   onParticleBaseSpeedChange: (speed: number) => void;
@@ -47,9 +78,9 @@ interface ConfigPanelProps {
   onClimaxDensitySensitivityChange: (sensitivity: number) => void;
   onClimaxDensityBoostStrengthChange: (strength: number) => void;
   onLayoutChange: (width: number) => void;
-  onLayoutDimensionChange: (key: any, value: number) => void;
+  onLayoutDimensionChange: (key: LayoutDimensionKey, value: number) => void;
   onPlayerOpacityChange: (value: number) => void;
-  onPlayerBarDimensionChange: (key: any, value: number) => void;
+  onPlayerBarDimensionChange: (key: PlayerBarDimensionKey, value: number) => void;
   onVinylStyleChange: (style: VinylStyle) => void;
   onVinylLabelSizeChange: (size: number) => void;
   onVinylCenterDotChange: (show: boolean) => void;
@@ -61,17 +92,17 @@ interface ConfigPanelProps {
   onVinylRotationSpeedChange: (speed: number) => void;
   onCoverConfigChange: (key: 'x' | 'y', value: number) => void;
   onBackgroundConfigChange: (key: 'scale' | 'x' | 'y', value: number) => void;
-  onWaveBarConfigChange?: (key: any, value: number) => void;
+  onWaveBarConfigChange?: (key: WaveBarConfigKey, value: number) => void;
   onCoverArtStyleChange: (style: CoverArtStyle) => void;
-  onAlbumProgressConfigChange: (key: any, value: any) => void;
+  onAlbumProgressConfigChange: (key: AlbumProgressConfigKey, value: AlbumProgressConfigValue) => void;
   presets: AppPreset[];
   onApplyPreset: (preset: AppPreset) => void;
   onSavePreset: (name: string, idToOverwrite?: string) => void;
   onDeletePreset: (id: string) => void;
   onExportPresets: () => { count: number; fileName: string } | Promise<{ count: number; fileName: string }>;
-  onImportPresets: (file: File) => Promise<any>;
+  onImportPresets: (file: File) => Promise<PresetImportSummary>;
   onLanguageChange: (lang: Language) => void;
-  onSingerInfoConfigChange: (key: string, value: any) => void;
+  onSingerInfoConfigChange: (key: SingerInfoConfigKey, value: SingerInfoConfigValue) => void;
   onSingerThemeGroupsChange: (groups: SingerThemeGroup[]) => void;
   onForceOverrideChange: (value: boolean) => void;
   onConfigPanelLayoutChange: (key: 'sidebarWidth' | 'contentLeftPadding', value: number) => void;
@@ -284,7 +315,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
               <ConfigLyrics appState={appState} onLyricLineConfigChange={props.onLyricLineConfigChange} onLyricSizeChange={props.onLyricSizeChange} onLyricActiveSizeCompensationChange={props.onLyricActiveSizeCompensationChange} onLyricInactiveBlurChange={props.onLyricInactiveBlurChange} onLyricBoldChange={props.onLyricBoldChange} onLyricColorChange={props.onLyricColorChange} onLyricShadowChange={props.onLyricShadowChange} onLyricOffsetChange={props.onLyricOffsetChange} onLyricGapToleranceChange={props.onLyricGapToleranceChange} translations={t} />
               <ConfigDetails appState={appState} onMetadataChange={props.onMetadataChange} translations={t} />
               <ConfigTypography appState={appState} onTrackTypographyChange={props.onTrackTypographyChange} translations={t} />
-              <ConfigAssets appState={appState} isRestoringAssets={isRestoringAssets} onFileChange={props.onFileChange} onFileRemove={props.onFileRemove} onCoverConfigChange={props.onCoverConfigChange} onBackgroundConfigChange={props.onBackgroundConfigChange} translations={t} />
+              <ConfigAssets appState={appState} isRestoringAssets={isRestoringAssets} persistedAssetInfo={props.persistedAssetInfo} onFileChange={props.onFileChange} onFileRemove={props.onFileRemove} onClearPersistedAssets={props.onClearPersistedAssets} onCoverConfigChange={props.onCoverConfigChange} onBackgroundConfigChange={props.onBackgroundConfigChange} translations={t} />
               <div className="h-20"></div>
             </div>
           </div>

@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { MdTextFields, MdFormatBold, MdFormatItalic, MdFormatColorFill, MdFormatSize, MdBlurOn } from 'react-icons/md';
-import { AppState } from '../../types';
+import { AppState, TrackTypographyField, TrackTypographyProp, TrackTypographyValue } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface ConfigTypographyProps {
     appState: AppState;
-    onTrackTypographyChange: (field: 'trackTitle' | 'trackArtist' | 'trackAlbum' | 'trackVisualArtist' | 'trackCoverSinger', prop: 'Size' | 'Color' | 'Bold' | 'Italic' | 'ShadowEnabled' | 'ShadowDirection' | 'ShadowStrength' | 'ShadowDistance' | 'ShadowBlur' | 'ShadowColor', value: any) => void;
+    onTrackTypographyChange: (field: TrackTypographyField, prop: TrackTypographyProp, value: TrackTypographyValue) => void;
     translations: any;
 }
 
@@ -26,7 +26,7 @@ const ConfigTypography: React.FC<ConfigTypographyProps> = ({ appState, onTrackTy
     ];
 
     const renderTypographyControl = (
-        field: 'trackTitle' | 'trackArtist' | 'trackAlbum' | 'trackVisualArtist' | 'trackCoverSinger',
+        field: TrackTypographyField,
         label: string,
         minSize: number = 8,
         maxSize: number = 100

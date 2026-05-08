@@ -1,26 +1,30 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { AppState, AppPreset } from './types';
-import { parseSRT, parseSingerSRT } from './utils/srtParser';
+import { parseSRT, parseSingerSRT, SRT_IMPORT_MAX_BYTES } from './utils/srtParser';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import AlbumArt from './components/AlbumArt';
 import LyricsDisplay from './components/LyricsDisplay';
 import ConfigPanel from './components/ConfigPanel';
 import GlobalParticles from './components/GlobalParticles';
 import { extractDominantColor } from './utils/colorUtils';
-import { DEFAULT_STATE, DEFAULT_PRESETS, CONFIG_KEYS } from './constants';
+import { DEFAULT_STATE, DEFAULT_PRESETS } from './constants';
 import BackgroundLayer from './components/BackgroundLayer';
 import TopHeader from './components/TopHeader';
 import TrackInfo from './components/TrackInfo';
 import PlayerControlBar from './components/PlayerControlBar';
-import { loadPersistedAsset, PersistedAssetType, PERSISTED_ASSET_TYPES, removePersistedAsset, savePersistedAsset } from './utils/persistedAssets';
-import { buildPresetTransferPayload, mergeImportedPresets, parsePresetTransferPayload } from './utils/presetTransfer';
+import { clearPersistedAssets, listPersistedAssets, loadPersistedAsset, PersistedAssetInfo, PersistedAssetType, PERSISTED_ASSET_TYPES, removePersistedAsset, savePersistedAsset } from './utils/persistedAssets';
+import { buildPresetTransferPayload, mergeImportedPresets, parsePresetTransferPayload, PRESET_IMPORT_MAX_BYTES } from './utils/presetTransfer';
+import { readAudioMetadata } from './utils/audioMetadata';
+import { extractPersistableState, PERSISTABLE_STATE_KEYS, sanitizePersistedState } from './stateSchema';
 
 const revokeObjectUrl = (url: string | null | undefined) => {
   if (url?.startsWith('blob:')) {
     URL.revokeObjectURL(url);
   }
 };
+
+type CssVariables = React.CSSProperties & Record<`--${string}`, string | number>;
 
 const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -29,7 +33,7 @@ const App: React.FC = () => {
     try {
         const saved = localStorage.getItem('vinyl_vibe_settings_v3');
         if (saved) {
-            const parsed = JSON.parse(saved);
+            const parsed = sanitizePersistedState(JSON.parse(saved));
             return {
                 ...DEFAULT_STATE,
                 ...parsed,
@@ -49,6 +53,7 @@ const App: React.FC = () => {
       } catch (e) { return []; }
   });
   const [isRestoringAssets, setIsRestoringAssets] = useState(false);
+  const [persistedAssetInfo, setPersistedAssetInfo] = useState<PersistedAssetInfo[]>([]);
   const appStateRef = useRef(appState);
   const latestAssetUrlsRef = useRef({
     audio: null as string | null,
@@ -137,13 +142,7 @@ const App: React.FC = () => {
 
   // Persistent AppState
   useEffect(() => {
-    const persistable: Partial<AppState> = {};
-    CONFIG_KEYS.forEach(key => {
-      if (key in appState) {
-        (persistable as any)[key] = appState[key];
-      }
-    });
-    localStorage.setItem('vinyl_vibe_settings_v3', JSON.stringify(persistable));
+    localStorage.setItem('vinyl_vibe_settings_v3', JSON.stringify(extractPersistableState(appState)));
   }, [appState]);
 
   useEffect(() => {
@@ -169,6 +168,15 @@ const App: React.FC = () => {
       .catch(() => undefined);
   }, []);
 
+  const refreshPersistedAssetInfo = useCallback(() => {
+    void listPersistedAssets()
+      .then(setPersistedAssetInfo)
+      .catch((error) => {
+        console.warn('Failed to list persisted assets.', error);
+        setPersistedAssetInfo([]);
+      });
+  }, []);
+
   const applyAssetFile = useCallback(async (
     type: PersistedAssetType,
     file: File,
@@ -187,37 +195,29 @@ const App: React.FC = () => {
         metadata: { ...prev.metadata, title: file.name.replace(/\.[^/.]+$/, "") }
       }));
 
-      if ((window as any).jsmediatags) {
-        (window as any).jsmediatags.read(file, {
-          onSuccess: (tag: any) => {
-            const { title, artist, album, picture } = tag.tags;
-            setAppState(prev => {
-              const shouldUseEmbeddedCover = allowEmbeddedCover && !prev.coverFile && !!picture;
-              let nextCoverUrl = prev.coverUrl;
+      void readAudioMetadata(file).then(({ title, artist, album, pictureBlob }) => {
+        setAppState(prev => {
+          const shouldUseEmbeddedCover = allowEmbeddedCover && !prev.coverFile && !!pictureBlob;
+          let nextCoverUrl = prev.coverUrl;
 
-              if (shouldUseEmbeddedCover) {
-                revokeObjectUrl(prev.coverUrl);
-                const { data, format } = picture;
-                const blob = new Blob([new Uint8Array(data)], { type: format });
-                nextCoverUrl = URL.createObjectURL(blob);
-                updateThemeColorFromUrl(nextCoverUrl);
-              }
+          if (shouldUseEmbeddedCover && pictureBlob) {
+            revokeObjectUrl(prev.coverUrl);
+            nextCoverUrl = URL.createObjectURL(pictureBlob);
+            updateThemeColorFromUrl(nextCoverUrl);
+          }
 
-              return {
-                ...prev,
-                metadata: {
-                  ...prev.metadata,
-                  title: title || prev.metadata.title,
-                  artist: artist || prev.metadata.artist,
-                  album: album || prev.metadata.album
-                },
-                coverUrl: shouldUseEmbeddedCover ? nextCoverUrl : prev.coverUrl
-              };
-            });
-          },
-          onError: () => undefined
+          return {
+            ...prev,
+            metadata: {
+              ...prev.metadata,
+              title: title || prev.metadata.title,
+              artist: artist || prev.metadata.artist,
+              album: album || prev.metadata.album
+            },
+            coverUrl: shouldUseEmbeddedCover ? nextCoverUrl : prev.coverUrl
+          };
         });
-      }
+      });
     } else if (type === 'cover') {
       const url = URL.createObjectURL(file);
       revokeObjectUrl(currentState.coverUrl);
@@ -228,32 +228,44 @@ const App: React.FC = () => {
       revokeObjectUrl(currentState.backgroundImageUrl);
       setAppState(prev => ({ ...prev, backgroundImageFile: file, backgroundImageUrl: url }));
     } else if (type === 'srt') {
+      if (file.size > SRT_IMPORT_MAX_BYTES) {
+        throw new Error('srt_file_too_large');
+      }
       const content = await file.text();
-      setAppState(prev => ({ ...prev, srtFile: file, lyrics: parseSRT(content) }));
+      const lyrics = parseSRT(content);
+      if (lyrics.length === 0) {
+        throw new Error('srt_file_invalid');
+      }
+      setAppState(prev => ({ ...prev, srtFile: file, lyrics }));
     } else if (type === 'singerSrt') {
+      if (file.size > SRT_IMPORT_MAX_BYTES) {
+        throw new Error('srt_file_too_large');
+      }
       const content = await file.text();
-      setAppState(prev => ({ ...prev, singerSrtFile: file, singerLyrics: parseSingerSRT(content) }));
+      const singerLyrics = parseSingerSRT(content);
+      if (singerLyrics.length === 0) {
+        throw new Error('srt_file_invalid');
+      }
+      setAppState(prev => ({ ...prev, singerSrtFile: file, singerLyrics }));
     }
 
     if (persist) {
       void savePersistedAsset(type, file).catch((error) => {
         console.warn(`Failed to persist ${type} asset.`, error);
-      });
+      }).finally(refreshPersistedAssetInfo);
     }
-  }, [updateThemeColorFromUrl]);
+  }, [refreshPersistedAssetInfo, updateThemeColorFromUrl]);
 
-  const handleFileChange = useCallback((type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt', file: File) => {
+  const handleFileChange = useCallback(async (type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt', file: File) => {
     if (type === 'customParticle') return;
-    void applyAssetFile(type, file).catch((error) => {
-      console.warn(`Failed to apply ${type} file.`, error);
-    });
+    await applyAssetFile(type, file);
   }, [applyAssetFile]);
 
   const handleFileRemove = useCallback((type: 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt') => {
     if (type !== 'customParticle') {
       void removePersistedAsset(type).catch((error) => {
         console.warn(`Failed to remove persisted ${type} asset.`, error);
-      });
+      }).finally(refreshPersistedAssetInfo);
     }
 
     setAppState(prev => {
@@ -292,7 +304,38 @@ const App: React.FC = () => {
 
       return nextState;
     });
-  }, []);
+  }, [refreshPersistedAssetInfo]);
+
+  const handleClearPersistedAssets = useCallback(() => {
+    void clearPersistedAssets().catch((error) => {
+      console.warn('Failed to clear persisted assets.', error);
+    }).finally(refreshPersistedAssetInfo);
+
+    setAppState(prev => {
+      revokeObjectUrl(prev.audioUrl);
+      revokeObjectUrl(prev.coverUrl);
+      revokeObjectUrl(prev.backgroundImageUrl);
+
+      return {
+        ...prev,
+        audioFile: null,
+        audioUrl: null,
+        coverFile: null,
+        coverUrl: null,
+        coverImageX: DEFAULT_STATE.coverImageX,
+        coverImageY: DEFAULT_STATE.coverImageY,
+        backgroundImageFile: null,
+        backgroundImageUrl: null,
+        backgroundImageScale: DEFAULT_STATE.backgroundImageScale,
+        backgroundImageX: DEFAULT_STATE.backgroundImageX,
+        backgroundImageY: DEFAULT_STATE.backgroundImageY,
+        srtFile: null,
+        singerSrtFile: null,
+        lyrics: [],
+        singerLyrics: [],
+      };
+    });
+  }, [refreshPersistedAssetInfo]);
 
   useEffect(() => {
     let cancelled = false;
@@ -332,7 +375,10 @@ const App: React.FC = () => {
           }
         }
       } finally {
-        if (!cancelled) setIsRestoringAssets(false);
+        if (!cancelled) {
+          setIsRestoringAssets(false);
+          refreshPersistedAssetInfo();
+        }
       }
     };
 
@@ -341,7 +387,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [applyAssetFile]);
+  }, [applyAssetFile, refreshPersistedAssetInfo]);
 
   useEffect(() => {
     latestAssetUrlsRef.current = {
@@ -358,8 +404,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleSavePreset = useCallback((name: string, idToOverwrite?: string) => {
-      const persistableConfig: Partial<AppState> = {};
-      CONFIG_KEYS.forEach(key => { (persistableConfig as any)[key] = (appState as any)[key]; });
+      const persistableConfig = extractPersistableState(appState);
       if (idToOverwrite) setCustomPresets(prev => prev.map(p => p.id === idToOverwrite ? { ...p, name, config: persistableConfig } : p));
       else setCustomPresets(prev => [...prev, { id: `custom_${Date.now()}`, name, config: persistableConfig }]);
   }, [appState]);
@@ -369,7 +414,7 @@ const App: React.FC = () => {
       throw new Error('no_custom_presets');
     }
 
-    const payload = buildPresetTransferPayload(customPresets, CONFIG_KEYS);
+    const payload = buildPresetTransferPayload(customPresets, PERSISTABLE_STATE_KEYS);
     const fileName = `stardust-audio-player-presets-${payload.exportedAt.replace(/[:.]/g, '-').replace('T', '_').replace('Z', '')}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -389,8 +434,11 @@ const App: React.FC = () => {
   }, [customPresets]);
 
   const handleImportPresets = useCallback(async (file: File) => {
+    if (file.size > PRESET_IMPORT_MAX_BYTES) {
+      throw new Error('preset_file_too_large');
+    }
     const raw = await file.text();
-    const importedPresets = parsePresetTransferPayload(raw, CONFIG_KEYS);
+    const importedPresets = parsePresetTransferPayload(raw, PERSISTABLE_STATE_KEYS);
     const importedSuffix = appState.language === 'zh' ? '（导入）' : ' (Imported)';
     const defaultPresetNames = DEFAULT_PRESETS.map((preset) => preset.name);
     let nextSummary: ReturnType<typeof mergeImportedPresets>['summary'] | null = null;
@@ -448,6 +496,21 @@ const App: React.FC = () => {
     };
   }, [currentSingerColors, activeThemeColor, appState.singerInfoOrientation]);
 
+  const contentLayoutStyle: CssVariables = {
+    '--content-width': `${appState.contentMaxWidth}%`,
+    '--gap-width': `${appState.columnGapWidth}%`,
+  };
+
+  const albumColumnStyle: CssVariables = {
+    '--album-width': `${appState.albumColumnWidth}%`,
+    transform: `translate(${appState.albumColumnX}%, ${appState.albumColumnY}%)`,
+  };
+
+  const lyricsColumnStyle: CssVariables = {
+    '--lyrics-width': `${appState.lyricsColumnWidth}%`,
+    transform: `translate(${appState.lyricsColumnX}%, ${appState.lyricsColumnY}%)`,
+  };
+
   return (
     <div 
         className="relative w-full h-[100dvh] overflow-hidden font-sans transition-colors duration-1000 ease-in-out"
@@ -467,13 +530,13 @@ const App: React.FC = () => {
       <div className={`relative z-10 flex flex-col h-full w-full max-w-[1920px] mx-auto`}>
         <TopHeader appState={appState} toggleTheme={() => setAppState(prev => ({...prev, themeMode: prev.themeMode === 'dark' ? 'light' : prev.themeMode === 'light' ? 'colorful' : 'dark'}))} setIsConfigOpen={setIsConfigOpen} />
 
-        <div className="flex-1 mx-auto flex flex-col landscape:flex-row lg:flex-row items-center justify-center pb-24 min-h-0 w-[var(--content-width)] gap-[var(--gap-width)]" style={{'--content-width': `${appState.contentMaxWidth}%`, '--gap-width': `${appState.columnGapWidth}%`} as any}>
-            <div className="w-[var(--album-width)] flex flex-col items-center justify-center shrink-0 z-10 transition-transform duration-500" style={{'--album-width': `${appState.albumColumnWidth}%`, transform: `translate(${appState.albumColumnX}%, ${appState.albumColumnY}%)`} as any}>
+        <div className="flex-1 mx-auto flex flex-col landscape:flex-row lg:flex-row items-center justify-center pb-24 min-h-0 w-[var(--content-width)] gap-[var(--gap-width)]" style={contentLayoutStyle}>
+            <div className="w-[var(--album-width)] flex flex-col items-center justify-center shrink-0 z-10 transition-transform duration-500" style={albumColumnStyle}>
                 <AlbumArt appState={{...appState, themeColor: activeThemeColor}} isPlaying={isPlaying} analyser={analyser} currentTime={currentTime} duration={duration} singerOverrideColors={currentSingerColors} />
                 <TrackInfo appState={appState} displayTitle={appState.metadata.title || 'No Audio'} displayArtist={appState.metadata.artist || 'Unknown'} singerOverrideColors={currentSingerColors} />
             </div>
 
-            <div className="w-[var(--lyrics-width)] h-[40vh] landscape:h-full lg:h-full relative min-h-0 transition-transform duration-500" style={{'--lyrics-width': `${appState.lyricsColumnWidth}%`, transform: `translate(${appState.lyricsColumnX}%, ${appState.lyricsColumnY}%)`} as any}>
+            <div className="w-[var(--lyrics-width)] h-[40vh] landscape:h-full lg:h-full relative min-h-0 transition-transform duration-500" style={lyricsColumnStyle}>
                 <div className="absolute inset-0">
                     <LyricsDisplay lyrics={appState.lyrics} currentTime={currentTime} isPlaying={isPlaying} isBuffering={isBuffering} getCurrentTime={getCurrentTime} themeColor={activeThemeColor} mainFontSize={appState.lyricFontSizeMain} subFontSize={appState.lyricFontSizeSub} activeSizeCompensation={appState.lyricActiveSizeCompensation} themeMode={appState.themeMode} lyricOffset={appState.lyricOffset} lyricGapTolerance={appState.lyricGapTolerance} isBold={appState.lyricBold} activeColor={appState.lyricActiveColor} inactiveColor={appState.lyricInactiveColor} strokeWidth={appState.lyricStrokeWidth} strokeColor={appState.lyricStrokeColor} inactiveBlurEnabled={appState.lyricInactiveBlurEnabled} inactiveBlurStrength={appState.lyricInactiveBlurStrength} shadowEnabled={appState.lyricShadowEnabled} shadowDirection={appState.lyricShadowDirection} shadowStrength={appState.lyricShadowStrength} shadowDistance={appState.lyricShadowDistance} shadowBlur={appState.lyricShadowBlur} shadowColor={appState.lyricShadowColor || defaultLyricShadowColor} primaryLineIndex={appState.lyricPrimaryLineIndex} displayOrder={appState.lyricDisplayOrder} activeEffect={appState.activeLyricEffect} streamerColor={appState.activeLyricStreamerColor} singerOverrideColors={currentSingerColors} />
                 </div>
@@ -544,7 +607,9 @@ const App: React.FC = () => {
         <ConfigPanel 
           isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} appState={appState}
           isRestoringAssets={isRestoringAssets}
+          persistedAssetInfo={persistedAssetInfo}
           onFileChange={handleFileChange} onFileRemove={handleFileRemove}
+          onClearPersistedAssets={handleClearPersistedAssets}
           onMetadataChange={(k, v) => setAppState(prev => ({...prev, metadata: {...prev.metadata, [k]: v}}))}
           onThemeChange={(c) => setAppState(prev => ({...prev, themeColor: c}))}
           onColorfulColorsChange={(c) => setAppState(prev => ({...prev, colorfulColors: c}))}
@@ -583,7 +648,7 @@ const App: React.FC = () => {
           onVinylRotationSpeedChange={(s) => setAppState(prev => ({...prev, vinylRotationSpeed: s}))}
           onCoverConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'x' ? 'coverImageX' : 'coverImageY']: v}))}
           onBackgroundConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'backgroundImageScale' : k === 'x' ? 'backgroundImageX' : 'backgroundImageY']: v}))}
-          onWaveBarConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'scale' ? 'waveBarScale' : k === 'x' ? 'waveBarPositionX' : k === 'y' ? 'waveBarPositionY' : k === 'blur' ? 'waveBarBlur' : k === 'height' ? 'waveBarHeight' : k === 'flow' ? 'waveBarFlowSpeed' : k === 'turbulence' ? 'waveBarTurbulence' : k === 'idle' ? 'waveBarIdleMotion' : 'waveBarOpacity']: v}))}
+          onWaveBarConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'amplitude' ? 'waveBarAmplitude' : k === 'waterLevel' ? 'waveBarWaterLevel' : k === 'blur' ? 'waveBarBlur' : k === 'height' ? 'waveBarHeight' : k === 'flow' ? 'waveBarFlowSpeed' : k === 'turbulence' ? 'waveBarTurbulence' : k === 'idle' ? 'waveBarIdleMotion' : 'waveBarOpacity']: v}))}
           onCoverArtStyleChange={(s) => setAppState(prev => ({...prev, coverArtStyle: s}))}
           onAlbumProgressConfigChange={(k, v) => setAppState(prev => ({...prev, [k === 'enable' ? 'enableAlbumProgress' : k === 'width' ? 'albumProgressWidth' : 'albumProgressOpacity']: v}))}
           presets={[...DEFAULT_PRESETS, ...customPresets]}

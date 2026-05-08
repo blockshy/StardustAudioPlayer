@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { MdRestartAlt, MdAspectRatio, MdCompareArrows, MdVerticalAlignBottom, MdOpacity, MdBlurOn } from 'react-icons/md';
-import { AppState } from '../../types';
+import { AppState, PlayerBarDimensionKey } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface PlayerBarControlsProps {
     appState: AppState;
-    onPlayerBarDimensionChange: (key: 'width' | 'height' | 'blur' | 'x' | 'y', value: number) => void;
+    onPlayerBarDimensionChange: (key: PlayerBarDimensionKey, value: number) => void;
     onPlayerOpacityChange: (value: number) => void;
     translations: any;
 }

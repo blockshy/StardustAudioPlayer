@@ -44,6 +44,22 @@ export type ThemeMode = 'dark' | 'light' | 'colorful';
 export type CoverArtStyle = 'vinyl' | '3d-card';
 export type LyricEffect = 'none' | 'fluid' | 'underline';
 export type Language = 'en' | 'zh';
+export type AssetInputType = 'audio' | 'cover' | 'srt' | 'background' | 'customParticle' | 'singerSrt';
+export type LyricColorKey = 'active' | 'inactive' | 'stroke' | 'strokeWidth' | 'effect' | 'streamerColor';
+export type LyricColorValue = string | number | null | LyricEffect;
+export type LyricShadowKey = 'enabled' | 'direction' | 'strength' | 'distance' | 'blur' | 'color';
+export type LyricShadowValue = boolean | number | string | null;
+export type TrackTypographyField = 'trackTitle' | 'trackArtist' | 'trackAlbum' | 'trackVisualArtist' | 'trackCoverSinger';
+export type TrackTypographyProp = 'Size' | 'Color' | 'Bold' | 'Italic' | 'ShadowEnabled' | 'ShadowDirection' | 'ShadowStrength' | 'ShadowDistance' | 'ShadowBlur' | 'ShadowColor';
+export type TrackTypographyValue = string | number | boolean | null;
+export type VisualizerKey = 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost';
+export type LayoutDimensionKey = 'total' | 'album' | 'lyrics' | 'gap' | 'albumX' | 'albumY' | 'infoGap' | 'lyricsX' | 'lyricsY';
+export type PlayerBarDimensionKey = 'width' | 'height' | 'blur' | 'x' | 'y';
+export type WaveBarConfigKey = 'amplitude' | 'waterLevel' | 'blur' | 'opacity' | 'height' | 'flow' | 'turbulence' | 'idle';
+export type AlbumProgressConfigKey = 'enable' | 'width' | 'opacity';
+export type AlbumProgressConfigValue = boolean | number;
+export type SingerInfoConfigKey = 'showSingerInfo' | 'singerInfoOrientation' | 'singerInfoFontSize' | 'singerInfoX' | 'singerInfoY' | 'singerLyricOffset' | 'singerLyricGapTolerance';
+export type SingerInfoConfigValue = boolean | number | AppState['singerInfoOrientation'];
 
 export interface AppState {
   language: Language; 
@@ -192,9 +208,8 @@ export interface AppState {
   playerBarPositionX: number; 
   playerBarPositionY: number; 
   
-  waveBarScale: number; 
-  waveBarPositionX: number; 
-  waveBarPositionY: number; 
+  waveBarAmplitude: number; 
+  waveBarWaterLevel: number; 
   waveBarBlur: number; 
   waveBarOpacity: number; 
   waveBarHeight: number;
@@ -212,7 +227,6 @@ export interface AppState {
   showVinylCenterDot: boolean;
   vinylScale: number; 
   vinylRotationSpeed: number; 
-  lyricEffect: 'none' | 'glow' | 'neon' | 'gradient' | 'retro' | 'fluid' | 'metal' | 'ink' | 'glitch' | 'particles';
 
 }
 

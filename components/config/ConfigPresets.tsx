@@ -89,9 +89,15 @@ const ConfigPresets: React.FC<ConfigPresetsProps> = ({
             });
         } catch (error) {
             const errorCode = error instanceof Error ? error.message : '';
-            const message = errorCode === 'invalid_preset_file' || errorCode === 'empty_preset_file'
-                ? t.presetImportInvalid
-                : t.presetImportFailed;
+            const message = errorCode === 'preset_file_too_large'
+                ? t.presetImportTooLarge
+                : errorCode === 'too_many_presets'
+                    ? t.presetImportTooMany
+                    : errorCode === 'preset_name_too_long'
+                        ? t.presetImportNameTooLong
+                        : errorCode === 'invalid_preset_file' || errorCode === 'empty_preset_file'
+                            ? t.presetImportInvalid
+                            : t.presetImportFailed;
             setFeedback({ tone: 'error', message });
         } finally {
             setIsTransferring(false);

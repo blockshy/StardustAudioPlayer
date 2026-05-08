@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { MdSpaceDashboard, MdPanTool, MdHeight } from 'react-icons/md';
-import { AppState } from '../../types';
+import { AppState, LayoutDimensionKey } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface LayoutDimensionsProps {
     appState: AppState;
-    onLayoutDimensionChange: (key: 'total' | 'album' | 'lyrics' | 'gap' | 'albumX' | 'albumY' | 'infoGap' | 'lyricsX' | 'lyricsY', value: number) => void;
+    onLayoutDimensionChange: (key: LayoutDimensionKey, value: number) => void;
     translations: any;
 }
 

@@ -89,6 +89,8 @@ vite.config.ts.timestamp-*
 # Optional
 .DS_Store
 Thumbs.db
+.codex
+dev/
 
 # Local deploy scripts
 run-prod.sh

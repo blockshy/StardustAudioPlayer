@@ -2,13 +2,13 @@
 
 import React from 'react';
 import { MdAlbum, Md3DRotation, MdDonutLarge, MdRotateRight, MdRadioButtonChecked, MdCheck } from 'react-icons/md';
-import { AppState, CoverArtStyle, VinylStyle } from '../../types';
+import { AppState, CoverArtStyle, VinylStyle, AlbumProgressConfigKey, AlbumProgressConfigValue } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface ConfigCoverProps {
     appState: AppState;
     onCoverArtStyleChange: (style: CoverArtStyle) => void;
-    onAlbumProgressConfigChange: (key: 'enable' | 'width' | 'opacity', value: boolean | number) => void;
+    onAlbumProgressConfigChange: (key: AlbumProgressConfigKey, value: AlbumProgressConfigValue) => void;
     onVinylScaleChange: (scale: number) => void;
     onVinylStyleChange: (style: VinylStyle) => void;
     onVinylRotationSpeedChange: (speed: number) => void;
@@ -32,7 +32,7 @@ const ConfigCover: React.FC<ConfigCoverProps> = ({
 }) => {
     const themeClasses = getThemeClasses(appState);
 
-    const coverArtStyles: { id: CoverArtStyle; label: string; icon: any }[] = [
+    const coverArtStyles: { id: CoverArtStyle; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
         { id: 'vinyl', label: t.styleVinyl, icon: MdAlbum },
         { id: '3d-card', label: t.style3D, icon: Md3DRotation },
     ];

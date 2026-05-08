@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MdFormatListNumbered, MdStar, MdFormatPaint, MdTimer, MdAutoFixHigh, MdBlurOn } from 'react-icons/md';
-import { AppState, LyricEffect } from '../../types';
+import { AppState, LyricColorKey, LyricColorValue, LyricEffect, LyricShadowKey, LyricShadowValue } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface LyricsStylingProps {
@@ -11,8 +11,8 @@ interface LyricsStylingProps {
     onLyricActiveSizeCompensationChange: (size: number) => void;
     onLyricInactiveBlurChange: (key: 'enabled' | 'strength', value: boolean | number) => void;
     onLyricBoldChange: (isBold: boolean) => void;
-    onLyricColorChange: (key: 'active' | 'inactive' | 'stroke' | 'strokeWidth' | 'effect' | 'streamerColor', value: string | number | null | LyricEffect) => void;
-    onLyricShadowChange: (key: 'enabled' | 'direction' | 'strength' | 'distance' | 'blur' | 'color', value: boolean | number | string | null) => void;
+    onLyricColorChange: (key: LyricColorKey, value: LyricColorValue) => void;
+    onLyricShadowChange: (key: LyricShadowKey, value: LyricShadowValue) => void;
     onLyricOffsetChange: (offset: number) => void;
     onLyricGapToleranceChange: (tolerance: number) => void;
     translations: any;

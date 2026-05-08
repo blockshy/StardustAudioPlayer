@@ -10,6 +10,14 @@ interface PersistedAssetRecord {
   lastModified: number;
 }
 
+export interface PersistedAssetInfo {
+  id: PersistedAssetType;
+  name: string;
+  mimeType: string;
+  size: number;
+  lastModified: number;
+}
+
 const DB_NAME = 'stardust-audio-player-assets';
 const STORE_NAME = 'assets';
 const DB_VERSION = 1;
@@ -85,4 +93,28 @@ export const loadPersistedAsset = async (type: PersistedAssetType): Promise<File
 
 export const removePersistedAsset = async (type: PersistedAssetType) => {
   await runStoreRequest('readwrite', (store) => store.delete(type));
+};
+
+export const listPersistedAssets = async (): Promise<PersistedAssetInfo[]> => {
+  const records = await runStoreRequest<PersistedAssetRecord[]>('readonly', (store) => store.getAll());
+  if (!records) return [];
+
+  return records
+    .filter((record): record is PersistedAssetRecord => (
+      !!record &&
+      PERSISTED_ASSET_TYPES.includes(record.id) &&
+      record.blob instanceof Blob &&
+      !!record.name
+    ))
+    .map((record) => ({
+      id: record.id,
+      name: record.name,
+      mimeType: record.mimeType || record.blob.type,
+      size: record.blob.size,
+      lastModified: record.lastModified || 0,
+    }));
+};
+
+export const clearPersistedAssets = async () => {
+  await runStoreRequest('readwrite', (store) => store.clear());
 };

@@ -1,4 +1,5 @@
 import { AppPreset, AppState } from '../types';
+import { sanitizePersistedState } from '../stateSchema';
 
 export interface PresetTransferItem {
   name: string;
@@ -19,6 +20,10 @@ export interface PresetImportSummary {
   total: number;
 }
 
+export const PRESET_IMPORT_MAX_BYTES = 512 * 1024;
+export const PRESET_IMPORT_MAX_ITEMS = 100;
+export const PRESET_NAME_MAX_LENGTH = 80;
+
 const cloneJsonSafe = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 const normalizePresetName = (name: string) => name.trim();
@@ -27,11 +32,12 @@ export const sanitizePresetConfig = (
   config: Partial<AppState>,
   allowedKeys: (keyof AppState)[]
 ) => {
+  const migratedConfig = sanitizePersistedState(config);
   const sanitized: Partial<AppState> = {};
 
   allowedKeys.forEach((key) => {
-    if (!(key in config)) return;
-    const value = config[key];
+    if (!(key in migratedConfig)) return;
+    const value = migratedConfig[key];
     if (value === undefined) return;
     (sanitized as Record<string, unknown>)[key] = cloneJsonSafe(value);
   });
@@ -56,10 +62,23 @@ export const parsePresetTransferPayload = (
   raw: string,
   allowedKeys: (keyof AppState)[]
 ) => {
-  const parsed = JSON.parse(raw) as Partial<PresetTransferPayload>;
+  if (new Blob([raw]).size > PRESET_IMPORT_MAX_BYTES) {
+    throw new Error('preset_file_too_large');
+  }
+
+  let parsed: Partial<PresetTransferPayload>;
+  try {
+    parsed = JSON.parse(raw) as Partial<PresetTransferPayload>;
+  } catch (error) {
+    throw new Error('invalid_preset_file');
+  }
 
   if (parsed.type !== 'stardust-audio-player-presets' || parsed.version !== 1 || !Array.isArray(parsed.presets)) {
     throw new Error('invalid_preset_file');
+  }
+
+  if (parsed.presets.length > PRESET_IMPORT_MAX_ITEMS) {
+    throw new Error('too_many_presets');
   }
 
   const presets = parsed.presets
@@ -71,6 +90,9 @@ export const parsePresetTransferPayload = (
         : null;
 
       if (!name || !config) return null;
+      if (name.length > PRESET_NAME_MAX_LENGTH) {
+        throw new Error('preset_name_too_long');
+      }
 
       return {
         name,

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { MdGraphicEq } from 'react-icons/md';
-import { AppState, ParticleType, ParticleDirection } from '../../types';
+import { AppState, ParticleType, ParticleDirection, VisualizerKey, WaveBarConfigKey } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 import WaveControls from './WaveControls';
 import ParticleControls from './ParticleControls';
@@ -9,8 +9,8 @@ import ParticleControls from './ParticleControls';
 interface ConfigVisualsProps {
     appState: AppState;
     onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
-    onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height' | 'flow' | 'turbulence' | 'idle', value: number) => void;
-    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
+    onWaveBarConfigChange?: (key: WaveBarConfigKey, value: number) => void;
+    onVisualizerChange: (key: VisualizerKey, value: boolean) => void;
     onParticleSizeChange: (size: number) => void;
     onParticleBaseSpeedChange: (speed: number) => void;
     onParticleDensityChange: (density: number) => void;

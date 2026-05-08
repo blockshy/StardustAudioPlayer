@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { MdWaves, MdGraphicEq, MdHeight, MdBlurOn } from 'react-icons/md';
-import { AppState } from '../../types';
+import { AppState, VisualizerKey, WaveBarConfigKey } from '../../types';
 import { getThemeClasses } from '../../utils/themeStyles';
 
 interface WaveControlsProps {
     appState: AppState;
     onSensitivityChange: (target: 'vinyl' | 'bar', value: number) => void;
-    onWaveBarConfigChange?: (key: 'scale' | 'x' | 'y' | 'blur' | 'opacity' | 'height' | 'flow' | 'turbulence' | 'idle', value: number) => void;
-    onVisualizerChange: (key: 'enableWaves' | 'enableParticles' | 'enableParticleClimaxDensityBoost', value: boolean) => void;
+    onWaveBarConfigChange?: (key: WaveBarConfigKey, value: number) => void;
+    onVisualizerChange: (key: VisualizerKey, value: boolean) => void;
     translations: any;
 }
 
@@ -58,15 +58,15 @@ const WaveControls: React.FC<WaveControlsProps> = ({
                     <div>
                         <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
                             <span>{t.waveAmplitude}</span>
-                            <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.waveBarScale * 100)}%</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{Math.round(appState.waveBarAmplitude * 100)}%</span>
                         </div>
                         <input
                             type="range"
                             min="0.4"
                             max="2.2"
                             step="0.05"
-                            value={appState.waveBarScale}
-                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('scale', Number(e.target.value))}
+                            value={appState.waveBarAmplitude}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('amplitude', Number(e.target.value))}
                             className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
                         />
                     </div>
@@ -88,15 +88,15 @@ const WaveControls: React.FC<WaveControlsProps> = ({
                     <div>
                         <div className={`flex justify-between text-xs ${themeClasses.textSub} mb-1`}>
                             <span>{t.waveWaterLevel}</span>
-                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.waveBarPositionY > 0 ? '+' : ''}{Math.round(appState.waveBarPositionY)}%</span>
+                            <span className={`font-mono ${themeClasses.textMuted}`}>{appState.waveBarWaterLevel > 0 ? '+' : ''}{Math.round(appState.waveBarWaterLevel)}%</span>
                         </div>
                         <input
                             type="range"
                             min="-25"
                             max="25"
                             step="1"
-                            value={appState.waveBarPositionY}
-                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('y', Number(e.target.value))}
+                            value={appState.waveBarWaterLevel}
+                            onChange={(e) => onWaveBarConfigChange && onWaveBarConfigChange('waterLevel', Number(e.target.value))}
                             className={`w-full h-1 ${themeClasses.sliderTrack} rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full ${themeClasses.sliderThumb} hover:[&::-webkit-slider-thumb]:scale-125 transition-all`}
                         />
                     </div>
