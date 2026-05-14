@@ -1,5 +1,200 @@
 
 export const translations: any = {
+  ja: {
+    title: "Vibe Player 設定",
+    subtitle: "ビジュアルとオーディオ環境をカスタマイズ",
+    presets: "プリセット",
+    appearance: "外観",
+    albumArtStyle: "アルバムアートスタイル",
+    visualEffects: "視覚効果",
+    lyricsLayout: "歌詞とレイアウト",
+    layout: "レイアウト",
+    lyrics: "歌詞",
+    trackDetails: "曲の詳細",
+    typography: "タイポグラフィ",
+    assets: "アセット管理",
+    cancel: "キャンセル",
+    saveCurrent: "現在を保存",
+    presetNamePlaceholder: "プリセット名を入力...",
+    save: "保存",
+    importPresets: "インポート",
+    exportPresets: "エクスポート",
+    presetTransferHint: "カスタムプリセットのみエクスポート。インポート時に同名のカスタムプリセットは上書きされます。",
+    noCustomPresetsToExport: "エクスポート可能なカスタムプリセットがありません。",
+    presetExportSuccess: "{count} 個のカスタムプリセットをエクスポートしました。",
+    presetExportFailed: "プリセットのエクスポートに失敗しました。",
+    presetImportSuccess: "{total} 個のプリセットをインポートしました。作成 {created}、上書き {overwritten}、名前変更 {renamed}。",
+    presetImportInvalid: "プリセットファイルの形式が無効です。",
+    presetImportTooLarge: "プリセットファイルが大きすぎます。512 KB 以内の JSON ファイルをインポートしてください。",
+    presetImportTooMany: "プリセット数が多すぎます。一度に 100 個以内にしてください。",
+    presetImportNameTooLong: "プリセット名は80文字以内にしてください。",
+    presetImportFailed: "プリセットのインポートに失敗しました。",
+    overwritePreset: "上書き",
+    deletePreset: "削除",
+    applyPreset: "適用",
+    modeDark: "ダーク",
+    modeLight: "ライト",
+    modeColorful: "カラフル",
+    colorfulBase: "ベーステーマ",
+    baseLight: "ライト",
+    baseDark: "ダーク",
+    paletteColors: "パレットカラー",
+    add: "追加",
+    dynamicTheming: "歌手連動配色",
+    singerType: "歌手 ID",
+    tempColors: "テーマカラー",
+    extractColor: "カバーから抽出",
+    uploadCoverFirst: "先にカバーをアップロードしてください",
+    customColor: "カスタムカラー",
+    styleVinyl: "レコード盤",
+    style3D: "3D カード",
+    vStyleClassic: "クラシック",
+    vDescClassic: "深い黒のレコードテクスチャ",
+    vStyleVintage: "ビンテージ",
+    vDescVintage: "温かみのある茶色の質感",
+    vStyleModern: "モダン",
+    vDescModern: "洗練されたダークグレー",
+    vStyleNeon: "ネオン",
+    vDescNeon: "エッジグローエフェクト",
+    albumProgress: "進行リングを表示",
+    progressWidth: "幅",
+    opacity: "不透明度",
+    artScale: "ビジュアライザースケール",
+    small: "小",
+    large: "大",
+    vinylOptions: "レコード設定",
+    rotationSpeed: "回転速度",
+    labelSize: "ラベルサイズ",
+    centerDot: "中心軸",
+    artPulse: "カバーパルス",
+    liquidWave: "リキッドウェーブ",
+    waveBarStyle: "波形プロパティ",
+    waveBarSens: "感度",
+    waveHeight: "高さ",
+    clarity: "明瞭さ",
+    waveAmplitude: "振幅",
+    waveOpacity: "波形の不透明度",
+    waveWaterLevel: "水位オフセット",
+    waveFlowSpeed: "流速",
+    waveTurbulence: "乱流",
+    waveIdleMotion: "静寂時の動き",
+    particleBeats: "パーティクルシステム",
+    climaxDensityBoost: "クライマックス密度ブースト",
+    climaxSensitivity: "クライマックス感度",
+    climaxBoostStrength: "クライマックス強度",
+    sensitivity: "感度",
+    size: "サイズ",
+    baseSpeed: "基本速度",
+    baseParticleDensity: "基本粒子密度",
+    shape: "パーティクル形状",
+    pTypeDot: "円形",
+    pTypeSakura: "桜",
+    pTypeLily: "百合",
+    pTypeRose: "薔薇",
+    pTypeSnow: "雪の結晶",
+    pTypeStar: "星",
+    pTypeDandelion: "タンポポ",
+    pTypePeach: "桃花",
+    pTypeChrysanthemum: "菊",
+    pTypeBegonia: "海棠",
+    particleDirection: "方向",
+    dirUp: "上",
+    dirDown: "下",
+    dirLeft: "左",
+    dirRight: "右",
+    color: "カラー",
+    matchTheme: "テーマに合わせる",
+    custom: "カスタム",
+    layoutDims: "レイアウト寸法",
+    containerWidth: "全体の最大幅",
+    albumColWidth: "アルバム幅",
+    posX: "X軸",
+    posY: "Y軸",
+    infoGap: "情報間隔",
+    gap: "カラム間隔",
+    lyricsColWidth: "歌詞幅",
+    playerBar: "プレイヤーコントロールのレイアウト",
+    reset: "リセット",
+    horizPos: "水平オフセット",
+    vertPos: "垂直オフセット",
+    left: "左",
+    center: "中央",
+    right: "右",
+    bottom: "下",
+    top: "上",
+    width: "幅",
+    height: "高さ",
+    blur: "ぼかし",
+    singerInfo: "歌手情報オーバーレイ",
+    orientation: "方向",
+    vertical: "縦",
+    horizontal: "横",
+    multiLine: "複数行設定",
+    primaryLine: "メイン歌詞行インデックス",
+    line: "行",
+    displayOrder: "表示順序",
+    orderHint: "行の順序 (例: 1, 2, 3)",
+    mainFontSize: "メイン歌詞サイズ",
+    subFontSize: "サブ歌詞サイズ",
+    activeSizeCompensation: "アクティブ時サイズ補正",
+    boldLyrics: "歌詞を太字",
+    customAppearance: "歌詞の外観",
+    active: "アクティブカラー",
+    inactive: "非アクティブカラー",
+    stroke: "アウトライン",
+    inactiveBlur: "非アクティブ歌詞ぼかし",
+    inactiveBlurStrength: "ぼかし量",
+    shadow: "シャドウ",
+    shadowDirection: "方向",
+    shadowColor: "色",
+    shadowStrength: "強度",
+    shadowDistance: "距離",
+    shadowBlur: "ぼかし",
+    dirUpLeft: "左上",
+    dirUpRight: "右上",
+    dirDownLeft: "左下",
+    dirDownRight: "右下",
+    activeEffect: "アクティブ遷移",
+    effNone: "静的",
+    effFluid: "リキッドグラデーション",
+    effUnderline: "アニメーション下線",
+    streamerColor: "ストリーマーカラー",
+    sync: "同期オフセット",
+    earlier: "早め",
+    later: "遅め",
+    gapTolerance: "ギャップ許容値",
+    gapToleranceHint: "無音時に歌詞をアクティブに保つ秒数",
+    trackTitle: "曲名",
+    artist: "アーティスト",
+    album: "アルバム",
+    visualArtist: "ビジュアルアーティスト",
+    coverSinger: "歌手/カバー",
+    headerTitle: "ヘッダータイトル",
+    headerSub: "ヘッダーサブタイトル",
+    bold: "太字",
+    italic: "斜体",
+    audioTrack: "音声ファイル",
+    albumArt: "アルバムアート",
+    bgImage: "背景画像",
+    lyricsSrt: "歌詞 (SRT)",
+    singerSrt: "歌手マッピング (SRT)",
+    noSelected: "未選択",
+    ready: "準備完了",
+    selectFile: "ファイルを選択",
+    fileImportSuccess: "ファイルを読み込みました。",
+    fileImportFailed: "ファイルを読み込めませんでした。",
+    srtImportTooLarge: "SRT ファイルが大きすぎます。2 MB 以内のファイルを使用してください。",
+    srtImportInvalid: "このファイルに有効な SRT エントリが見つかりませんでした。",
+    restoringAssets: "保存されたアセットを復元中...",
+    localAssetNotice: "選択したファイルはこのブラウザにのみ保存され、次回のローカル復元に使用されます。この静的ページはこれらをアップロードしません。",
+    savedFiles: "個の保存済みファイル",
+    noSavedFiles: "保存されたローカルファイルはありません",
+    clearLocalFiles: "保存されたローカルファイルを消去",
+    clear: "消去",
+    bgPos: "背景位置",
+    forceOverride: "コンポーネントの同期を強制",
+    forceOverrideDesc: "歌手テーマをテキスト、プログレス、パーティクルに同期します。",
+  },
   en: {
     title: "Vibe Player Settings",
     subtitle: "Customize your visual and audio environment",
@@ -391,3 +586,48 @@ export const translations: any = {
     forceOverrideDesc: "临时主题色将作用于文字、进度条、粒子等所有核心组件。",
   }
 };
+
+import type { Language } from '../types';
+
+export function isLanguage(value: string | null): value is Language {
+  return value === 'en' || value === 'zh' || value === 'ja';
+}
+
+function normalizeLanguage(value: string | null): Language | null {
+  if (!value) return null;
+  const normalized = value.toLowerCase();
+  if (normalized === 'zh' || normalized === 'cn' || normalized === 'zh-cn' || normalized.startsWith('zh-')) return 'zh';
+  if (normalized === 'en' || normalized === 'en-us' || normalized.startsWith('en-')) return 'en';
+  if (normalized === 'ja' || normalized === 'ja-jp' || normalized.startsWith('ja-')) return 'ja';
+  return null;
+}
+
+export function readInitialLanguage(): Language {
+  if (typeof window === 'undefined') return 'zh';
+  const url = new URL(window.location.href);
+  const urlLanguage = normalizeLanguage(url.searchParams.get('lang') || url.searchParams.get('locale'));
+  if (urlLanguage) return urlLanguage;
+  const stored = normalizeLanguage(window.localStorage.getItem('vinyl_vibe_lang'));
+  if (stored) return stored;
+  const browserLang = window.navigator.language.toLowerCase();
+  if (browserLang.startsWith('zh')) return 'zh';
+  if (browserLang.startsWith('ja')) return 'ja';
+  return 'en';
+}
+
+export function applyLanguage(language: Language) {
+  document.documentElement.lang = language === 'zh' ? 'zh-CN' : language === 'ja' ? 'ja' : 'en';
+  window.localStorage.setItem('vinyl_vibe_lang', language);
+}
+
+export function cleanupLanguageQueryParam() {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  const hasValidLanguage = Boolean(
+    normalizeLanguage(url.searchParams.get('lang')) || normalizeLanguage(url.searchParams.get('locale'))
+  );
+  if (!hasValidLanguage) return;
+  url.searchParams.delete('lang');
+  url.searchParams.delete('locale');
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+}

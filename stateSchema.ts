@@ -427,7 +427,7 @@ const normalizeSingerThemeGroups = (value: unknown) => {
 type StateNormalizer = (value: unknown) => unknown;
 
 const stateNormalizers: Partial<Record<PersistableStateKey, StateNormalizer>> = {
-  language: oneOf<Language>(['en', 'zh']),
+  language: oneOf<Language>(['en', 'zh', 'ja']),
   themeMode: oneOf<ThemeMode>(['dark', 'light', 'colorful']),
   colorfulThemeBase: oneOf(['light', 'dark']),
   colorfulColors: (value) => normalizeColorArray(value, 1, 5),

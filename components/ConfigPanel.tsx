@@ -30,7 +30,7 @@ import {
 } from '../types';
 import { PersistedAssetInfo } from '../utils/persistedAssets';
 import { PresetImportSummary } from '../utils/presetTransfer';
-import { MdClose, MdOpenInNew, MdInput } from 'react-icons/md';
+import { MdClose, MdOpenInNew, MdInput, MdExpandMore } from 'react-icons/md';
 import { translations } from '../utils/translations';
 import { getThemeClasses } from '../utils/themeStyles';
 
@@ -120,13 +120,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
   const detachedWindowRef = useRef<Window | null>(null);
   const detachedContainerRef = useRef<HTMLDivElement | null>(null);
   const detachedCloseModeRef = useRef<'close' | 'dock' | null>(null);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
 
   const t = (translations as any)[appState.language];
   const themeClasses = getThemeClasses(appState);
   const sidebarWidth = Math.max(60, Math.min(340, appState.configSidebarWidth || 160));
   const contentLeftPadding = Math.max(0, Math.min(160, appState.configContentLeftPadding || 0));
 
-  const toggleLanguage = () => onLanguageChange(appState.language === 'en' ? 'zh' : 'en');
+  const toggleLanguage = () => onLanguageChange(appState.language === 'en' ? 'zh' : appState.language === 'zh' ? 'ja' : 'en');
   const scrollToSection = (id: string) => {
     const el = contentRef.current?.querySelector(`#section-${id}`) as HTMLElement | null;
     if (el) {
@@ -196,6 +198,16 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
     }
     onClose();
   };
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    if (langOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [langOpen]);
 
   useEffect(() => {
     if (!contentRef.current || !isOpen) return;
@@ -275,7 +287,46 @@ const ConfigPanel: React.FC<ConfigPanelProps> = (props) => {
           <button onClick={isDetached ? dockBackToMain : detachToWindow} className={`${themeClasses.iconMuted} ${themeClasses.iconColor} transition-colors p-2 rounded-full`} title={isDetached ? 'Dock back' : 'Pop out'}>
             {isDetached ? <MdInput size={20} /> : <MdOpenInNew size={20} />}
           </button>
-          <button onClick={toggleLanguage} className={`${themeClasses.iconMuted} ${themeClasses.iconColor} transition-colors p-2 rounded-full flex items-center gap-1`}><span className="text-[10px] font-bold">{appState.language.toUpperCase()}</span></button>
+          <div style={{ position: 'relative' }} ref={langRef}>
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className={`${themeClasses.iconMuted} ${themeClasses.iconColor} transition-colors p-2 rounded-full flex items-center gap-1`}
+              aria-expanded={langOpen}
+            >
+              <span className="text-[10px] font-bold">{appState.language.toUpperCase()}</span>
+              <MdExpandMore size={14} style={{ transition: 'transform 0.2s', transform: langOpen ? 'rotate(180deg)' : 'none' }} />
+            </button>
+            {langOpen && (
+              <div style={{
+                position: 'absolute', right: 0, top: '100%', marginTop: '6px', zIndex: 50,
+                minWidth: '110px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)',
+                padding: '4px', background: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(20px)',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.5)'
+              }}>
+                {([
+                  { value: 'zh', label: '简体中文' },
+                  { value: 'en', label: 'English' },
+                  { value: 'ja', label: '日本語' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { onLanguageChange(opt.value); setLangOpen(false); }}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left',
+                      padding: '7px 10px', fontSize: '12px', borderRadius: '8px',
+                      cursor: 'pointer', border: 'none', background: 'transparent',
+                      color: appState.language === opt.value ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.55)',
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.target as HTMLElement).style.color = 'rgba(255,255,255,0.9)'; }}
+                    onMouseLeave={e => { (e.target as HTMLElement).style.background = 'transparent'; (e.target as HTMLElement).style.color = appState.language === opt.value ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.55)'; }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button onClick={closePanel} className={`${themeClasses.iconMuted} ${themeClasses.iconColor} transition-colors p-2 rounded-full`}><MdClose size={24} /></button>
         </div>
       </div>

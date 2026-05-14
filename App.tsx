@@ -17,6 +17,7 @@ import { clearPersistedAssets, listPersistedAssets, loadPersistedAsset, Persiste
 import { buildPresetTransferPayload, mergeImportedPresets, parsePresetTransferPayload, PRESET_IMPORT_MAX_BYTES } from './utils/presetTransfer';
 import { readAudioMetadata } from './utils/audioMetadata';
 import { extractPersistableState, PERSISTABLE_STATE_KEYS, sanitizePersistedState } from './stateSchema';
+import { applyLanguage, cleanupLanguageQueryParam, readInitialLanguage } from './utils/translations';
 
 const revokeObjectUrl = (url: string | null | undefined) => {
   if (url?.startsWith('blob:')) {
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   
   const [appState, setAppState] = useState<AppState>(() => {
+    const initialLanguage = readInitialLanguage();
     try {
         const saved = localStorage.getItem('vinyl_vibe_settings_v3');
         if (saved) {
@@ -37,13 +39,14 @@ const App: React.FC = () => {
             return {
                 ...DEFAULT_STATE,
                 ...parsed,
+                language: initialLanguage,
                 audioFile: null, audioUrl: null, coverFile: null, coverUrl: null,
                 backgroundImageFile: null, backgroundImageUrl: null,
                 srtFile: null, singerSrtFile: null, lyrics: [], singerLyrics: []
             };
         }
     } catch (e) {}
-    return DEFAULT_STATE;
+    return { ...DEFAULT_STATE, language: initialLanguage };
   });
 
   const [customPresets, setCustomPresets] = useState<AppPreset[]>(() => {
@@ -144,6 +147,11 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('vinyl_vibe_settings_v3', JSON.stringify(extractPersistableState(appState)));
   }, [appState]);
+
+  useEffect(() => {
+    applyLanguage(appState.language);
+    cleanupLanguageQueryParam();
+  }, [appState.language]);
 
   useEffect(() => {
     localStorage.setItem('vinyl_vibe_presets', JSON.stringify(customPresets));

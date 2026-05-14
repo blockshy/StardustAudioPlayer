@@ -95,6 +95,21 @@ const PlayerControlBar: React.FC<PlayerControlBarProps> = ({
             buffering: '正在缓冲',
             error: '音频播放异常',
           }
+        : appState.language === 'ja'
+        ? {
+            play: '再生',
+            pause: '一時停止',
+            rewind: '10秒戻る',
+            forward: '10秒進む',
+            mute: 'ミュート',
+            unmute: '音量を戻す',
+            progress: '再生位置',
+            volume: '音量',
+            noAudio: '音声が読み込まれていません',
+            loading: '音声を読み込み中',
+            buffering: 'バッファリング中',
+            error: '音声再生エラー',
+          }
         : {
             play: 'Play',
             pause: 'Pause',
